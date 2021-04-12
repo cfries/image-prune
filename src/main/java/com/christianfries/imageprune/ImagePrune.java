@@ -9,10 +9,13 @@ import java.awt.image.PixelGrabber;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.imageio.ImageIO;
 
 public class ImagePrune {
+
 
 	public static void main(String[] args) throws IOException {
 		if(args.length != 2) throw new IllegalArgumentException("Please provide path to images and threshold as arguments.");
@@ -23,6 +26,8 @@ public class ImagePrune {
 		// List of all files and directories
 		String contents[] = directoryPath.list();
 		Arrays.sort(contents);
+
+		ExecutorService fileDeletionService = Executors.newSingleThreadExecutor();
 
 		BufferedImage reference = null;
 		for(int i=0; i<contents.length; i++) {
@@ -60,15 +65,17 @@ public class ImagePrune {
 				double level = (double)difference / (reference.getHeight()*reference.getWidth()) / (3.0*255);
 
 				System.out.print(contents[i] + "\t" + i + "\t" + level);
-
 				if(level < threshold) {
-					File f= new File(directory + File.separator + contents[i]);           //file to be delete  
-					if(f.delete()) {  
-						System.out.println(" deleted.");
-					}
-					else {
-						System.out.println(" deletion failed.");
-					}
+					System.out.println(" will be deleted.");
+
+					final String filename = contents[i];
+					final String pathname = directory + File.separator + contents[i];
+					fileDeletionService.submit(() -> {
+						File f= new File(pathname);           //file to be delete  
+						if(!f.delete()) {  
+							System.out.print(filename + " deletion failed.");
+						}
+					});
 				}
 				else {
 					System.out.println(" ok");
