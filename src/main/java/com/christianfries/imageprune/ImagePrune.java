@@ -29,7 +29,7 @@ public class ImagePrune {
 
 			try {
 				// Load the images
-				BufferedImage image = ImageIO.read(new File(directory + File.pathSeparatorChar + contents[i]));
+				BufferedImage image = ImageIO.read(new File(directory + File.separator + contents[i]));
 				if(reference == null) {
 					reference = image;
 					continue;
