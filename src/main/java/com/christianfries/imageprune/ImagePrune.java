@@ -56,6 +56,7 @@ public class ImagePrune {
 						difference += Math.abs(red1-red2) + Math.abs(green1-green2) + Math.abs(blue1-blue2);
 					}
 				}
+				reference = image;
 				double level = (double)difference / (reference.getHeight()*reference.getWidth()) / (3.0*255);
 
 				System.out.print(contents[i] + "\t" + i + "\t" + level);
