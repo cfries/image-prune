@@ -11,13 +11,16 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 import javax.imageio.ImageIO;
 
 public class ImagePrune {
 
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		if(args.length != 2) throw new IllegalArgumentException("Please provide path to images and threshold as arguments.");
 		String directory = args[0];
 		Double threshold = Double.valueOf(args[1]);
@@ -35,34 +38,9 @@ public class ImagePrune {
 			try {
 				// Load the images
 				BufferedImage image = ImageIO.read(new File(directory + File.separator + contents[i]));
-				if(reference == null) {
-					reference = image;
-					continue;
-				}
 
-				long difference = 0;
-				for (int y = 0; y < reference.getHeight(); y++) {
-					for (int x = 0; x < reference.getWidth(); x++) {
-						//Retrieving contents of a pixel
-						int pixel1 = reference.getRGB(x,y);
-						int pixel2 = image.getRGB(x,y);
-						//Creating a Color object from pixel value
-						Color color1 = new Color(pixel1, true);
-						//Retrieving the R G B values
-						int red1 = color1.getRed();
-						int green1 = color1.getGreen();
-						int blue1 = color1.getBlue();
-						Color color2 = new Color(pixel2, true);
-						//Retrieving the R G B values
-						int red2 = color2.getRed();
-						int green2 = color2.getGreen();
-						int blue2 = color2.getBlue();
-
-						difference += Math.abs(red1-red2) + Math.abs(green1-green2) + Math.abs(blue1-blue2);
-					}
-				}
+				double level = getImageDifference(reference, image);
 				reference = image;
-				double level = (double)difference / (reference.getHeight()*reference.getWidth()) / (3.0*255);
 
 				System.out.print(contents[i] + "\t" + i + "\t" + level);
 				if(level < threshold) {
@@ -73,7 +51,7 @@ public class ImagePrune {
 					fileDeletionService.submit(() -> {
 						File f= new File(pathname);           //file to be delete  
 						if(!f.delete()) {  
-							System.out.print(filename + " deletion failed.");
+							System.out.println(filename + " deletion failed.");
 						}
 					});
 				}
@@ -85,5 +63,40 @@ public class ImagePrune {
 				e.printStackTrace();
 			}
 		}
+		fileDeletionService.shutdown();
+		fileDeletionService.awaitTermination(10, TimeUnit.SECONDS);
+	}
+
+	private static double getImageDifference(final BufferedImage reference, final BufferedImage image) {
+
+		if(reference == null) return Double.MAX_VALUE;
+		
+		long difference = LongStream.range(0, reference.getHeight()).parallel().map(i -> {
+			long differenceForRow = 0;
+			int y = (int)i;
+			for (int x = 0; x < reference.getWidth(); x++) {
+				//Retrieving contents of a pixel
+				int pixel1 = reference.getRGB(x,y);
+				int pixel2 = image.getRGB(x,y);
+				//Creating a Color object from pixel value
+				Color color1 = new Color(pixel1, true);
+				//Retrieving the R G B values
+				int red1 = color1.getRed();
+				int green1 = color1.getGreen();
+				int blue1 = color1.getBlue();
+				Color color2 = new Color(pixel2, true);
+				//Retrieving the R G B values
+				int red2 = color2.getRed();
+				int green2 = color2.getGreen();
+				int blue2 = color2.getBlue();
+
+				differenceForRow += Math.abs(red1-red2) + Math.abs(green1-green2) + Math.abs(blue1-blue2);
+			}
+			return differenceForRow;
+		}).sum();
+		
+		double level = (double)difference / (reference.getHeight()*reference.getWidth()) / (3.0*255);
+		
+		return level;
 	}
 }
