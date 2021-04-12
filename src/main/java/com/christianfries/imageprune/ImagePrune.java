@@ -39,7 +39,7 @@ public class ImagePrune {
 				// Load the images
 				BufferedImage image = ImageIO.read(new File(directory + File.separator + contents[i]));
 
-				double level = getImageDifference(reference, image);
+				double level = getImageDifference(reference, image, true);
 				reference = image;
 
 				System.out.print(contents[i] + "\t" + i + "\t" + level);
@@ -67,17 +67,23 @@ public class ImagePrune {
 		fileDeletionService.awaitTermination(10, TimeUnit.SECONDS);
 	}
 
-	private static double getImageDifference(final BufferedImage reference, final BufferedImage image) {
+	private static double getImageDifference(final BufferedImage reference, final BufferedImage image, boolean blackWhite) throws IOException {
 
 		if(reference == null) return Double.MAX_VALUE;
-		
-		long difference = LongStream.range(0, reference.getHeight()).parallel().map(i -> {
+
+		int width = reference.getWidth() / 8;
+		int height = reference.getHeight() / 8;
+
+		final BufferedImage referenceScaled = resizeImage(reference, width, height);
+		final BufferedImage imageScaled = resizeImage(image, width, height);
+
+		long difference = LongStream.range(0, height).parallel().map(i -> {
 			long differenceForRow = 0;
 			int y = (int)i;
-			for (int x = 0; x < reference.getWidth(); x++) {
+			for (int x = 0; x < width; x++) {
 				//Retrieving contents of a pixel
-				int pixel1 = reference.getRGB(x,y);
-				int pixel2 = image.getRGB(x,y);
+				int pixel1 = referenceScaled.getRGB(x,y);
+				int pixel2 = imageScaled.getRGB(x,y);
 				//Creating a Color object from pixel value
 				Color color1 = new Color(pixel1, true);
 				//Retrieving the R G B values
@@ -90,13 +96,45 @@ public class ImagePrune {
 				int green2 = color2.getGreen();
 				int blue2 = color2.getBlue();
 
-				differenceForRow += Math.abs(red1-red2) + Math.abs(green1-green2) + Math.abs(blue1-blue2);
+				if(blackWhite) {
+					differenceForRow += Math.abs((red1+green1+blue1) - (red2+green2+blue2));
+				}
+				else {
+					differenceForRow += Math.abs(red1-red2) + Math.abs(green1-green2) + Math.abs(blue1-blue2);
+				}
 			}
 			return differenceForRow;
 		}).sum();
-		
-		double level = (double)difference / (reference.getHeight()*reference.getWidth()) / (3.0*255);
-		
+
+		double level = (double)difference / (width*height) / (3.0*255);
+
 		return level;
+	}
+
+	private static long getImageExposure(BufferedImage image) {
+		return LongStream.range(0, image.getHeight()).parallel().map(i -> {
+			long sumForRow = 0;
+			int y = (int)i;
+			for (int x = 0; x < image.getWidth(); x++) {
+				//Retrieving contents of a pixel
+				int pixel = image.getRGB(x,y);
+				//Creating a Color object from pixel value
+				Color color = new Color(pixel, true);
+				//Retrieving the R G B values
+				int red = color.getRed();
+				int green = color.getGreen();
+				int blue = color.getBlue();
+
+				sumForRow += red+green+blue;
+			}
+			return sumForRow;
+		}).sum();
+	}
+	
+	public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) throws IOException {
+	    Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_AREA_AVERAGING);
+	    BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+	    outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
+	    return outputImage;
 	}
 }
