@@ -63,9 +63,11 @@ public class ImagePrune {
 
 				if(level < threshold) {
 					File f= new File(directory + File.separator + contents[i]);           //file to be delete  
-					if(f.delete())                      //returns Boolean value  
-					{  
-						System.out.println(" deleted");   //getting and printing the file name  
+					if(f.delete()) {  
+						System.out.println(" deleted.");
+					}
+					else {
+						System.out.println(" deletion failed.");
 					}
 				}
 				else {
