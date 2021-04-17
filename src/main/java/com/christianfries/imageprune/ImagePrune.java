@@ -49,10 +49,10 @@ public class ImagePrune {
 					final String filename = contents[i];
 					final String pathname = directory + File.separator + contents[i];
 					fileDeletionService.submit(() -> {
-//						File f= new File(pathname);           //file to be delete  
-//						if(!f.delete()) {  
-//							System.out.println(filename + " deletion failed.");
-//						}
+						File f= new File(pathname);           //file to be delete  
+						if(!f.delete()) {  
+							System.out.println(filename + " deletion failed.");
+						}
 					});
 				}
 				else {
