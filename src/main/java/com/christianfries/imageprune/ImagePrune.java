@@ -49,10 +49,10 @@ public class ImagePrune {
 					final String filename = contents[i];
 					final String pathname = directory + File.separator + contents[i];
 					fileDeletionService.submit(() -> {
-						File f= new File(pathname);           //file to be delete  
-						if(!f.delete()) {  
-							System.out.println(filename + " deletion failed.");
-						}
+//						File f= new File(pathname);           //file to be delete  
+//						if(!f.delete()) {  
+//							System.out.println(filename + " deletion failed.");
+//						}
 					});
 				}
 				else {
@@ -74,13 +74,20 @@ public class ImagePrune {
 		int width = reference.getWidth() / 8;
 		int height = reference.getHeight() / 8;
 
-		final BufferedImage referenceScaled = resizeImage(reference, width, height);
-		final BufferedImage imageScaled = resizeImage(image, width, height);
+		final BufferedImage referenceScaled = reference;//resizeImage(reference, width, height);
+		final BufferedImage imageScaled = image;//resizeImage(image, width, height);
 
-		long difference = LongStream.range(0, height).parallel().map(i -> {
-			long differenceForRow = 0;
+		double meanReference = getImageMean(referenceScaled);
+		double meanImage = getImageMean(imageScaled);
+
+		double sigmaReference = getImageSigma(referenceScaled, meanReference);
+		double sigmaImage = getImageSigma(imageScaled, meanImage);
+
+		
+		double difference = LongStream.range(0, reference.getHeight()).parallel().mapToDouble(i -> {
+			double differenceForRow = 0;
 			int y = (int)i;
-			for (int x = 0; x < width; x++) {
+			for (int x = 0; x < reference.getWidth(); x++) {
 				//Retrieving contents of a pixel
 				int pixel1 = referenceScaled.getRGB(x,y);
 				int pixel2 = imageScaled.getRGB(x,y);
@@ -97,7 +104,9 @@ public class ImagePrune {
 				int blue2 = color2.getBlue();
 
 				if(blackWhite) {
-					differenceForRow += Math.abs((red1+green1+blue1) - (red2+green2+blue2));
+					double differenceOnPixel = ((double)(red1+green1+blue1)/(3.0*255.0)-meanReference) * ((double)(red2+green2+blue2)/(3.0*255.0)-meanImage);
+//					double differenceOnPixel = Math.abs((double)(red1+green1+blue1)/(3.0*255.0) - meanReference/meanImage * (double)(red2+green2+blue2)/(3.0*255.0));
+					differenceForRow += differenceOnPixel;
 				}
 				else {
 					differenceForRow += Math.abs(red1-red2) + Math.abs(green1-green2) + Math.abs(blue1-blue2);
@@ -106,14 +115,14 @@ public class ImagePrune {
 			return differenceForRow;
 		}).sum();
 
-		double level = (double)difference / (width*height) / (3.0*255);
+		double level = difference / (reference.getWidth()*reference.getHeight());
 
-		return level;
+		return (1.0 - level / sigmaImage / sigmaReference) / 2.0;
 	}
 
-	private static long getImageExposure(BufferedImage image) {
-		return LongStream.range(0, image.getHeight()).parallel().map(i -> {
-			long sumForRow = 0;
+	private static double getImageMean(BufferedImage image) {
+		return LongStream.range(0, image.getHeight()).parallel().mapToDouble(i -> {
+			double sumForRow = 0;
 			int y = (int)i;
 			for (int x = 0; x < image.getWidth(); x++) {
 				//Retrieving contents of a pixel
@@ -125,12 +134,32 @@ public class ImagePrune {
 				int green = color.getGreen();
 				int blue = color.getBlue();
 
-				sumForRow += red+green+blue;
+				sumForRow += (double)(red+green+blue) / 255.0 / 3.0;
 			}
 			return sumForRow;
-		}).sum();
+		}).sum() / (image.getHeight() * image.getWidth());
 	}
-	
+
+	private static double getImageSigma(BufferedImage image, double mean) {
+		return Math.sqrt(LongStream.range(0, image.getHeight()).parallel().mapToDouble(i -> {
+			double sumOfSquaresForRow = 0;
+			int y = (int)i;
+			for (int x = 0; x < image.getWidth(); x++) {
+				//Retrieving contents of a pixel
+				int pixel = image.getRGB(x,y);
+				//Creating a Color object from pixel value
+				Color color = new Color(pixel, true);
+				//Retrieving the R G B values
+				int red = color.getRed();
+				int green = color.getGreen();
+				int blue = color.getBlue();
+
+				sumOfSquaresForRow += Math.pow((red+green+blue)/255.0/3.0 - mean,2);
+			}
+			return sumOfSquaresForRow;
+		}).sum() / (image.getHeight() * image.getWidth()));
+	}
+
 	public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) throws IOException {
 	    Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_AREA_AVERAGING);
 	    BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
