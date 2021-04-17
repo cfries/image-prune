@@ -2,17 +2,13 @@ package com.christianfries.imageprune;
 
 import java.awt.Color;
 import java.awt.Image;
-import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.PixelGrabber;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import javax.imageio.ImageIO;
@@ -71,11 +67,11 @@ public class ImagePrune {
 
 		if(reference == null) return Double.MAX_VALUE;
 
-		int width = reference.getWidth() / 8;
-		int height = reference.getHeight() / 8;
+		int width = reference.getWidth() / 3;
+		int height = reference.getHeight() / 3;
 
-		final BufferedImage referenceScaled = reference;//resizeImage(reference, width, height);
-		final BufferedImage imageScaled = image;//resizeImage(image, width, height);
+		final BufferedImage referenceScaled = resizeImage(reference, width, height);
+		final BufferedImage imageScaled = resizeImage(image, width, height);
 
 		double meanReference = getImageMean(referenceScaled);
 		double meanImage = getImageMean(imageScaled);
@@ -84,10 +80,10 @@ public class ImagePrune {
 		double sigmaImage = getImageSigma(imageScaled, meanImage);
 
 		
-		double difference = LongStream.range(0, reference.getHeight()).parallel().mapToDouble(i -> {
+		double difference = LongStream.range(0, referenceScaled.getHeight()).parallel().mapToDouble(i -> {
 			double differenceForRow = 0;
 			int y = (int)i;
-			for (int x = 0; x < reference.getWidth(); x++) {
+			for (int x = 0; x < referenceScaled.getWidth(); x++) {
 				//Retrieving contents of a pixel
 				int pixel1 = referenceScaled.getRGB(x,y);
 				int pixel2 = imageScaled.getRGB(x,y);
@@ -115,7 +111,7 @@ public class ImagePrune {
 			return differenceForRow;
 		}).sum();
 
-		double level = difference / (reference.getWidth()*reference.getHeight());
+		double level = difference / (referenceScaled.getWidth()*referenceScaled.getHeight());
 
 		return (1.0 - level / sigmaImage / sigmaReference) / 2.0;
 	}
@@ -160,8 +156,8 @@ public class ImagePrune {
 		}).sum() / (image.getHeight() * image.getWidth()));
 	}
 
-	public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) throws IOException {
-	    Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_AREA_AVERAGING);
+	private static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) throws IOException {
+	    Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
 	    BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
 	    outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
 	    return outputImage;
