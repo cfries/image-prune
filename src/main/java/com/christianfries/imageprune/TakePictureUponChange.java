@@ -3,7 +3,7 @@ package com.christianfries.imageprune;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
+import java.awt.image.DataBufferByte;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -118,8 +118,8 @@ public class TakePictureUponChange {
 		final BufferedImage referenceScaled = reference;//resizeImage(reference, width, height);
 		final BufferedImage imageScaled = image;//resizeImage(image, width, height);
 
-		int[] pixelsRefernce = ((DataBufferInt) referenceScaled.getRaster().getDataBuffer()).getData();
-		int[] pixelsImage = ((DataBufferInt) imageScaled.getRaster().getDataBuffer()).getData();
+		byte[] pixelsRefernce = ((DataBufferByte) referenceScaled.getRaster().getDataBuffer()).getData();
+		byte[] pixelsImage = ((DataBufferByte) imageScaled.getRaster().getDataBuffer()).getData();
 
 		double meanReference = getImageMean(pixelsRefernce);
 		double meanImage = getImageMean(pixelsImage);
@@ -128,15 +128,15 @@ public class TakePictureUponChange {
 		double covarSum = 0;
 		double varSumReference = 0;
 		double varSumImage = 0;
-		for(int i=0; i < pixelsRefernce.length; i++) {
+		for(int i=0; i < pixelsRefernce.length/3; i++) {
 
-				int red1 = (pixelsRefernce[i] & 0x0000ff);
-				int green1 = (pixelsRefernce[i] & 0x00ff00) >> 8;
-				int blue1 = (pixelsRefernce[i] & 0xff0000) >> 16;
+				int red1 = pixelsRefernce[3*i+0];
+				int green1 = pixelsRefernce[3*i+1];
+				int blue1 = pixelsRefernce[3*i+2];
 
-				int red2 = (pixelsImage[i] & 0x0000ff);
-				int green2 = (pixelsImage[i] & 0x00ff00) >> 8;
-				int blue2 = (pixelsImage[i] & 0xff0000) >> 16;
+				int red2 = pixelsImage[3*i+0];
+				int green2 = pixelsImage[3*i+1];
+				int blue2 = pixelsImage[3*i+2];
 
 				double diff1 = (double)(red1+green1+blue1)/(3.0*255.0)-meanReference;
 				double diff2 = (double)(red2+green2+blue2)/(3.0*255.0)-meanImage;
@@ -151,14 +151,8 @@ public class TakePictureUponChange {
 		return (1.0 - level) / 2.0;
 	}
 
-	private static double getImageMean(final int[] pixels) {
-		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> 
-		{
-			int red = (pixels[i] & 0x0000ff);
-			int green = (pixels[i] & 0x00ff00) >> 8;
-			int blue = (pixels[i] & 0xff0000) >> 16;
-			return (red+green+blue) / 3.0 / 255.0;
-		}).average().orElse(Double.NaN);
+	private static double getImageMean(final byte[] pixels) {
+		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)pixels[i] / 255.0).average().orElse(Double.NaN);
 	}
 
 	private static double getImageSigma(BufferedImage image, double mean) {
