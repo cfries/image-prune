@@ -9,7 +9,8 @@ import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.LongStream;
 
 import javax.imageio.ImageIO;
@@ -21,7 +22,7 @@ public class TakePictureUponChange {
 		Double threshold = Double.valueOf(args[0]);
 		final String	fileName = args[1];
 		final String	targetDir = args[2];
-		final String[]	imageCommand = Arrays.copyOfRange(args, 3, args.length);
+		final String	imageCommand = args[3];
 
 
 		BufferedImage reference = null;
@@ -29,9 +30,12 @@ public class TakePictureUponChange {
 		while(true) {
 			try {
 				System.out.println("Taking image.");
+				
+				String fileNameUnique = fileName + "-" + System.currentTimeMillis();
 
-				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand);
+				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand.replaceFirst("{filename}", fileNameUnique));
 				processBuilder.directory(null);
+
 				File log = new File("TakePictureUponChange.log");
 				processBuilder.redirectErrorStream(true);
 				processBuilder.redirectOutput(Redirect.appendTo(log));
@@ -55,13 +59,13 @@ public class TakePictureUponChange {
 				if(level > threshold) {
 					System.out.println("Transferring image.");
 
-					String target = targetDir + File.separator + fileName + "-" + System.currentTimeMillis();
-					Files.copy(Paths.get(fileName), Paths.get(target));
+					String target = targetDir + File.separator + fileNameUnique;
+					Files.copy(Paths.get(fileNameUnique), Paths.get(target));
 
 					System.out.println("Transfered image to " + target);
 				}
 				else {
-					Files.delete(Paths.get(fileName));
+					Files.delete(Paths.get(fileNameUnique));
 				}
 			}
 			catch(Exception e) {
