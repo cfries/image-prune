@@ -33,34 +33,36 @@ public class TakePictureUponChange {
 
 		ExecutorService executorService = Executors.newFixedThreadPool(4);
 
+		ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash");
+		processBuilder.directory(null);
+		Process process = processBuilder.start();
+
+		OutputStream stdin = process.getOutputStream();
+		InputStream stderr = process.getErrorStream();
+		InputStream stdout = process.getInputStream();
+
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin));
+		BufferedReader reader = new BufferedReader (new InputStreamReader(stdout));
+
+		String script = ""
+				+ "for(( ; ; ))\n"
+				+ "do\n"
+				+ "  timestamp=$(date +%s)\n"
+				+ "  filename=image-$timestamp.jpg\n"
+				+ "  " + imageCommand + " $filename\n"
+				+ "  echo $filename\n"
+				+ "done\n";
+		writer.write(script);
+		writer.flush();
+
+
 		BufferedImage reference = null;
 
-				ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash");
-				processBuilder.directory(null);
-				Process process = processBuilder.start();
+		while(true) {
 
-				OutputStream stdin = process.getOutputStream();
-				InputStream stderr = process.getErrorStream();
-				InputStream stdout = process.getInputStream();
-
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin));
-				BufferedReader reader = new BufferedReader (new InputStreamReader(stdout));
-
-				String script = ""
-						+ "for(( ; ; ))\n"
-						+ "do\n"
-						+ "  timestamp=$(date +%s)\n"
-						+ "  filename=image-$timestamp.jpg\n"
-						+ "  " + imageCommand + " $filename\n"
-						+ "  echo $filename\n"
-						+ "done\n";
-				writer.write(script);
-				writer.flush();
-
-				while(true) {
-				
-					try {
-						String filename = reader.readLine();
+			try {
+				String filename = reader.readLine();
+				System.out.println(filename);
 				// Load the image
 				final BufferedImage image = ImageIO.read(new File(filename));
 				final BufferedImage referenceImage = reference;
@@ -80,10 +82,13 @@ public class TakePictureUponChange {
 			if(level > threshold) {
 				String target = targetDir + File.separator + filename;
 				Files.copy(Paths.get(filename), Paths.get(target));
-
+				Files.delete(Paths.get(filename));
 				System.out.println(filename + "\t" + level + "\ttransfered.");
+				
+				
 			}
 			else {
+				Files.delete(Paths.get(filename));
 				System.out.println(filename + "\t" + level + "\tdeleted.");
 			}
 		}
