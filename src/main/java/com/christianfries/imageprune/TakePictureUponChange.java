@@ -66,12 +66,11 @@ public class TakePictureUponChange {
 		while(true) {
 			try {
 				String filename = reader.readLine();
-				System.out.println(filename);
 				// Load the image
 				long timeReadStart = System.currentTimeMillis();
 				final BufferedImage image = ImageIO.read(new File(filename));
 				long timeReadEnd = System.currentTimeMillis();
-//				System.out.println("Read....: " + ((timeReadEnd-timeReadStart)/1000.0));
+				//				System.out.println("Read....: " + ((timeReadEnd-timeReadStart)/1000.0));
 
 				final BufferedImage referenceImage = reference;
 				executorImageCompare.submit(() -> saveWhenDifferent(referenceImage, image, threshold, filename, targetDir));
@@ -104,7 +103,11 @@ public class TakePictureUponChange {
 				}
 				long timeCleanEnd = System.currentTimeMillis();
 				final double timeTransfer = (timeCleanEnd-timeCleanStart)/1000.0;
-				System.out.println(filename + "\t" + level + "\ttransfered\t" + String.format("(compare: %5.3f s, transfer: %5.3f s).", timeCompare, timeTransfer));
+
+				System.out.println(
+						filename + "\t" + String.format("%8.5f", level) + "\t" +
+						((level > threshold) ? "transfered" : "deleted") +
+						"\t" + String.format("(compare: %5.3f s, transfer: %5.3f s).", timeCompare, timeTransfer));
 			}
 			catch(Exception e)
 			{
@@ -160,7 +163,7 @@ public class TakePictureUponChange {
 	private static double getImageMean(final byte[] pixels) {
 		// IntStream sum does not work if we have more than 2 Megapixels
 		return IntStream.range(0, pixels.length).parallel().mapToLong(i -> Byte.toUnsignedInt(pixels[i])).sum() / 255.0 / pixels.length;
-//		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)Byte.toUnsignedInt(pixels[i]) / 255.0).average().orElse(Double.NaN);
+		//		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)Byte.toUnsignedInt(pixels[i]) / 255.0).average().orElse(Double.NaN);
 	}
 
 	private static double getImageMeanSquared(final byte[] pixels) {
