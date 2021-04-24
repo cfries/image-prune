@@ -33,7 +33,7 @@ public class TakePictureUponChange {
 				
 				String fileNameUnique = fileName + "-" + System.currentTimeMillis();
 
-				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand.replaceFirst("{filename}", fileNameUnique));
+				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand.replace("{filename}", fileNameUnique));
 				processBuilder.directory(null);
 
 				File log = new File("TakePictureUponChange.log");
