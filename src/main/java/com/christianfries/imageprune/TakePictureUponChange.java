@@ -28,6 +28,8 @@ public class TakePictureUponChange {
 
 		while(true) {
 			try {
+				System.out.println("Taking image.");
+
 				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand);
 				processBuilder.directory(null);
 				File log = new File("TakePictureUponChange.log");
@@ -39,16 +41,23 @@ public class TakePictureUponChange {
 				assert process.getInputStream().read() == -1;
 				process.waitFor();
 
+				System.out.println("Reading image.");
+
 				// Load the image
 				BufferedImage image = ImageIO.read(new File(fileName));
+
+				System.out.println("Comparing images.");
 
 				double level = getImageDifference(reference, image, true);
 				reference = image;
 
 				System.out.println("Image level is " + level);
 				if(level > threshold) {
+					System.out.println("Transferring image.");
+
 					String target = targetDir + File.separator + fileName + "-" + System.currentTimeMillis();
 					Files.copy(Paths.get(fileName), Paths.get(target));
+
 					System.out.println("Transfered image to " + target);
 				}
 				else {
