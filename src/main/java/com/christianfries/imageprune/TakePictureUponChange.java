@@ -112,27 +112,20 @@ public class TakePictureUponChange {
 
 		if(reference == null) return Double.MAX_VALUE;
 
-		int width = reference.getWidth() / 4;
-		int height = reference.getHeight() / 4;
+		byte[] pixelsReference = ((DataBufferByte) reference.getRaster().getDataBuffer()).getData();
+		byte[] pixelsImage = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 
-		final BufferedImage referenceScaled = reference;//resizeImage(reference, width, height);
-		final BufferedImage imageScaled = image;//resizeImage(image, width, height);
-
-		byte[] pixelsRefernce = ((DataBufferByte) referenceScaled.getRaster().getDataBuffer()).getData();
-		byte[] pixelsImage = ((DataBufferByte) imageScaled.getRaster().getDataBuffer()).getData();
-
-		double meanReference = getImageMean(pixelsRefernce);
+		double meanReference = getImageMean(pixelsReference);
 		double meanImage = getImageMean(pixelsImage);
-
 
 		double covarSum = 0;
 		double varSumReference = 0;
 		double varSumImage = 0;
-		for(int i=0; i < pixelsRefernce.length/3; i++) {
+		for(int i=0; i < pixelsReference.length/3; i++) {
 
-				int red1 = pixelsRefernce[3*i+0];
-				int green1 = pixelsRefernce[3*i+1];
-				int blue1 = pixelsRefernce[3*i+2];
+				int red1 = pixelsReference[3*i+0];
+				int green1 = pixelsReference[3*i+1];
+				int blue1 = pixelsReference[3*i+2];
 
 				int red2 = pixelsImage[3*i+0];
 				int green2 = pixelsImage[3*i+1];
@@ -152,7 +145,7 @@ public class TakePictureUponChange {
 	}
 
 	private static double getImageMean(final byte[] pixels) {
-		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)pixels[i] / 255.0).average().orElse(Double.NaN);
+		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)pixels[i] / 3.0 / 255.0).average().orElse(Double.NaN);
 	}
 
 	private static double getImageSigma(BufferedImage image, double mean) {
