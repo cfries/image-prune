@@ -39,22 +39,23 @@ public class TakePictureUponChange {
 				processBuilder.directory(null);
 				Process process = processBuilder.start();
 
-				OutputStream stdin = process.getOutputStream ();
-				InputStream stderr = process.getErrorStream ();
-				InputStream stdout = process.getInputStream ();
+				OutputStream stdin = process.getOutputStream();
+				InputStream stderr = process.getErrorStream();
+				InputStream stdout = process.getInputStream();
 
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin));
 				BufferedReader reader = new BufferedReader (new InputStreamReader(stdout));
 
 				String script = ""
-						+ "for(( ; ; ))"
-						+ "do"
-						+ "  timestamp=$(date +%s)"
-						+ "  filename=image-$timestamp.jpg"
-						+ "  " + imageCommand + " $filename"
-						+ "  echo $filename"
-						+ "done";
+						+ "for(( ; ; ))\n"
+						+ "do\n"
+						+ "  timestamp=$(date +%s)\n"
+						+ "  filename=image-$timestamp.jpg\n"
+						+ "  " + imageCommand + " $filename\n"
+						+ "  echo $filename\n"
+						+ "done\n";
 				writer.write(script);
+				writer.flush();
 
 				while(true) {
 				
