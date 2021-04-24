@@ -26,6 +26,8 @@ import javax.imageio.ImageIO;
 
 public class TakePictureUponChange {
 
+	private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
 	public static void main(String[] args) throws IOException, InterruptedException {
 
 		Double threshold = Double.valueOf(args[0]);
@@ -57,7 +59,7 @@ public class TakePictureUponChange {
 		writer.flush();
 
 		System.out.println(script);
-		
+
 		BufferedImage reference = null;
 
 		while(true) {
@@ -82,35 +84,38 @@ public class TakePictureUponChange {
 		}
 	}
 
-	private static boolean saveWhenDifferent(final BufferedImage reference, final BufferedImage image, double threshold, String filename, String targetDir) {
-		try {
-			long timeCompareStart = System.currentTimeMillis();
-			double level = getImageDifference(reference, image, true);
-			long timeCompareEnd = System.currentTimeMillis();
-			System.out.println("Compare.: " + ((timeCompareEnd-timeCompareStart)/1000));
+	private static boolean saveWhenDifferent(final BufferedImage reference, final BufferedImage image, double threshold, String filename, String targetDir) throws IOException {
+		long timeCompareStart = System.currentTimeMillis();
+		double level = getImageDifference(reference, image, true);
+		long timeCompareEnd = System.currentTimeMillis();
+		System.out.println("Compare.: " + ((timeCompareEnd-timeCompareStart)/1000));
 
-			long timeCleanStart = System.currentTimeMillis();
-			boolean isDifferent = level > threshold;
-			if(level > threshold) {
-				String target = targetDir + File.separator + filename;
-				Files.copy(Paths.get(filename), Paths.get(target));
-				Files.delete(Paths.get(filename));
-				System.out.println(filename + "\t" + level + "\ttransfered.");
+		final boolean isDifferent = level > threshold;
+
+		executorService.submit(() -> {
+			try {
+				long timeCleanStart = System.currentTimeMillis();
+				if(level > threshold) {
+					String target = targetDir + File.separator + filename;
+					Files.copy(Paths.get(filename), Paths.get(target));
+					Files.delete(Paths.get(filename));
+					System.out.println(filename + "\t" + level + "\ttransfered.");
+				}
+				else {
+					Files.delete(Paths.get(filename));
+					System.out.println(filename + "\t" + level + "\tdeleted.");
+				}
+				long timeCleanEnd = System.currentTimeMillis();
+				System.out.println("Clean.: " + ((timeCleanEnd-timeCleanStart)/1000));
 			}
-			else {
-				Files.delete(Paths.get(filename));
-				System.out.println(filename + "\t" + level + "\tdeleted.");
+			catch(Exception e)
+			{
+				System.out.println(filename + "\t" + level + "\tFAILED.");
+				e.printStackTrace();
 			}
-			long timeCleanEnd = System.currentTimeMillis();
-			System.out.println("Clean.: " + ((timeCleanEnd-timeCleanStart)/1000));
-			
-			return isDifferent;
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-			return true;
-		}
+		});
+
+		return isDifferent;
 	}
 
 	private static double getImageDifference(final BufferedImage reference, final BufferedImage image, boolean blackWhite) throws IOException {
@@ -129,22 +134,23 @@ public class TakePictureUponChange {
 		double covarSum = 0;
 		double varSumReference = 0;
 		double varSumImage = 0;
+
 		for(int i=0; i < pixelsReference.length/3; i++) {
 
-				int red1 = Byte.toUnsignedInt(pixelsReference[3*i+0]);
-				int green1 = Byte.toUnsignedInt(pixelsReference[3*i+1]);
-				int blue1 = Byte.toUnsignedInt(pixelsReference[3*i+2]);
+			int red1 = Byte.toUnsignedInt(pixelsReference[3*i+0]);
+			int green1 = Byte.toUnsignedInt(pixelsReference[3*i+1]);
+			int blue1 = Byte.toUnsignedInt(pixelsReference[3*i+2]);
 
-				int red2 = Byte.toUnsignedInt(pixelsImage[3*i+0]);
-				int green2 = Byte.toUnsignedInt(pixelsImage[3*i+1]);
-				int blue2 = Byte.toUnsignedInt(pixelsImage[3*i+2]);
+			int red2 = Byte.toUnsignedInt(pixelsImage[3*i+0]);
+			int green2 = Byte.toUnsignedInt(pixelsImage[3*i+1]);
+			int blue2 = Byte.toUnsignedInt(pixelsImage[3*i+2]);
 
-				double diff1 = (double)(red1+green1+blue1)/(3.0*255.0)-meanReference;
-				double diff2 = (double)(red2+green2+blue2)/(3.0*255.0)-meanImage;
+			double diff1 = (double)(red1+green1+blue1)/(3.0*255.0)-meanReference;
+			double diff2 = (double)(red2+green2+blue2)/(3.0*255.0)-meanImage;
 
-				covarSum += diff1*diff2;
-				varSumReference += diff1*diff1;
-				varSumImage += diff2*diff2;
+			covarSum += diff1*diff2;
+			varSumReference += diff1*diff1;
+			varSumImage += diff2*diff2;
 		}
 
 		double level = covarSum / Math.sqrt(varSumReference*varSumImage);
