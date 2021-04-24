@@ -18,11 +18,11 @@ public class TakePictureUponChange {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 
-		final String	fileName = args[0];
-		final String	targetDir = args[1];
-		final String[]	imageCommand = Arrays.copyOfRange(args, 1, args.length);
-
 		Double threshold = Double.valueOf(args[0]);
+		final String	fileName = args[1];
+		final String	targetDir = args[2];
+		final String[]	imageCommand = Arrays.copyOfRange(args, 3, args.length);
+
 
 		BufferedImage reference = null;
 
