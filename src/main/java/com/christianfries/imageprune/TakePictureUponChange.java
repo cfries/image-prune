@@ -72,8 +72,9 @@ public class TakePictureUponChange {
 				System.out.println("Read....: " + ((timeReadEnd-timeReadStart)/1000));
 
 				final BufferedImage referenceImage = reference;
-				saveWhenDifferent(referenceImage, image, threshold, filename, targetDir);
-				reference = image;
+				if(saveWhenDifferent(referenceImage, image, threshold, filename, targetDir)) {
+					reference = image;
+				}
 			}
 			catch(Exception e) {
 				e.printStackTrace();
@@ -81,7 +82,7 @@ public class TakePictureUponChange {
 		}
 	}
 
-	private static void saveWhenDifferent(final BufferedImage reference, final BufferedImage image, double threshold, String filename, String targetDir) {
+	private static boolean saveWhenDifferent(final BufferedImage reference, final BufferedImage image, double threshold, String filename, String targetDir) {
 		try {
 			long timeCompareStart = System.currentTimeMillis();
 			double level = getImageDifference(reference, image, true);
@@ -89,6 +90,7 @@ public class TakePictureUponChange {
 			System.out.println("Compare.: " + ((timeCompareEnd-timeCompareStart)/1000));
 
 			long timeCleanStart = System.currentTimeMillis();
+			boolean isDifferent = level > threshold;
 			if(level > threshold) {
 				String target = targetDir + File.separator + filename;
 				Files.copy(Paths.get(filename), Paths.get(target));
@@ -101,16 +103,22 @@ public class TakePictureUponChange {
 			}
 			long timeCleanEnd = System.currentTimeMillis();
 			System.out.println("Clean.: " + ((timeCleanEnd-timeCleanStart)/1000));
+			
+			return isDifferent;
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
+			return true;
 		}
 	}
 
 	private static double getImageDifference(final BufferedImage reference, final BufferedImage image, boolean blackWhite) throws IOException {
 
 		if(reference == null) return Double.MAX_VALUE;
+
+		boolean isImageHasAlpha = reference.getAlphaRaster() != null;
+		System.out.println(isImageHasAlpha);
 
 		byte[] pixelsReference = ((DataBufferByte) reference.getRaster().getDataBuffer()).getData();
 		byte[] pixelsImage = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
