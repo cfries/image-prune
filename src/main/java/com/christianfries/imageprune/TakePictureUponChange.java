@@ -160,7 +160,8 @@ public class TakePictureUponChange {
 	}
 
 	private static double getImageMean(final byte[] pixels) {
-		return IntStream.range(0, pixels.length).parallel().map(i -> Byte.toUnsignedInt(pixels[i])).sum() / 255.0 / pixels.length;
+		// IntStream sum does not work if we have more than 2 Megapixels
+		return IntStream.range(0, pixels.length).parallel().mapToLong(i -> Byte.toUnsignedInt(pixels[i])).sum() / 255.0 / pixels.length;
 //		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)Byte.toUnsignedInt(pixels[i]) / 255.0).average().orElse(Double.NaN);
 	}
 
