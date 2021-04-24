@@ -121,15 +121,15 @@ public class TakePictureUponChange {
 		double covarSum = 0;
 		double varSumReference = 0;
 		double varSumImage = 0;
-		for(int i=0; i < pixelsReference.length/3; i++) {
+		for(int i=0; i < pixelsReference.length/4; i++) {
 
-				int red1 = pixelsReference[3*i+0];
-				int green1 = pixelsReference[3*i+1];
-				int blue1 = pixelsReference[3*i+2];
+				int red1 = pixelsReference[4*i+1];
+				int green1 = pixelsReference[4*i+2];
+				int blue1 = pixelsReference[4*i+3];
 
-				int red2 = pixelsImage[3*i+0];
-				int green2 = pixelsImage[3*i+1];
-				int blue2 = pixelsImage[3*i+2];
+				int red2 = pixelsImage[4*i+1];
+				int green2 = pixelsImage[4*i+2];
+				int blue2 = pixelsImage[4*i+3];
 
 				double diff1 = (double)(red1+green1+blue1)/(3.0*255.0)-meanReference;
 				double diff2 = (double)(red2+green2+blue2)/(3.0*255.0)-meanImage;
