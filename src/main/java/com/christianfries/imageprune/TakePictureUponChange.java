@@ -62,11 +62,11 @@ public class TakePictureUponChange {
 				String target = targetDir + File.separator + fileName.substring(0, fileName.length()-4) + "-" + System.currentTimeMillis() + fileName.substring(fileName.length()-4);
 				Files.copy(Paths.get(fileName), Paths.get(target));
 
-				System.out.print(fileName + "\t" + level + "\ttransfered.");
+				System.out.println(fileName + "\t" + level + "\ttransfered.");
 			}
 			else {
 				Files.delete(Paths.get(fileName));
-				System.out.print(fileName + "\t" + level + "\tdeleted.");
+				System.out.println(fileName + "\t" + level + "\tdeleted.");
 			}
 		}
 		catch(Exception e)
