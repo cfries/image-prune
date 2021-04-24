@@ -64,7 +64,11 @@ public class TakePictureUponChange {
 				String filename = reader.readLine();
 				System.out.println(filename);
 				// Load the image
+				long timeReadStart = System.currentTimeMillis();
 				final BufferedImage image = ImageIO.read(new File(filename));
+				long timeReadEnd = System.currentTimeMillis();
+				System.out.println("Read....: " + ((timeReadEnd-timeReadStart)/1000));
+
 				final BufferedImage referenceImage = reference;
 				saveWhenDifferent(referenceImage, image, threshold, filename, targetDir);
 				reference = image;
@@ -77,20 +81,24 @@ public class TakePictureUponChange {
 
 	private static void saveWhenDifferent(final BufferedImage reference, final BufferedImage image, double threshold, String filename, String targetDir) {
 		try {
+			long timeCompareStart = System.currentTimeMillis();
 			double level = getImageDifference(reference, image, true);
+			long timeCompareEnd = System.currentTimeMillis();
+			System.out.println("Compare.: " + ((timeCompareEnd-timeCompareStart)/1000));
 
+			long timeCleanStart = System.currentTimeMillis();
 			if(level > threshold) {
 				String target = targetDir + File.separator + filename;
 				Files.copy(Paths.get(filename), Paths.get(target));
 				Files.delete(Paths.get(filename));
 				System.out.println(filename + "\t" + level + "\ttransfered.");
-				
-				
 			}
 			else {
 				Files.delete(Paths.get(filename));
 				System.out.println(filename + "\t" + level + "\tdeleted.");
 			}
+			long timeCleanEnd = System.currentTimeMillis();
+			System.out.println("Clean.: " + ((timeCompareEnd-timeCompareStart)/1000));
 		}
 		catch(Exception e)
 		{
