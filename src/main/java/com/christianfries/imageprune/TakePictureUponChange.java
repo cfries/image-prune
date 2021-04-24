@@ -115,8 +115,8 @@ public class TakePictureUponChange {
 		int width = reference.getWidth() / 4;
 		int height = reference.getHeight() / 4;
 
-		final BufferedImage referenceScaled = resizeImage(reference, width, height);
-		final BufferedImage imageScaled = resizeImage(image, width, height);
+		final BufferedImage referenceScaled = reference;//resizeImage(reference, width, height);
+		final BufferedImage imageScaled = image;//resizeImage(image, width, height);
 
 		int[] pixelsRefernce = ((DataBufferInt) referenceScaled.getRaster().getDataBuffer()).getData();
 		int[] pixelsImage = ((DataBufferInt) imageScaled.getRaster().getDataBuffer()).getData();
