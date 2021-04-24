@@ -161,12 +161,7 @@ public class TakePictureUponChange {
 	}
 
 	private static double getImageMean(final byte[] pixels) {
-		double sum = 0.0;
-		for(int i=0; i<pixels.length; i++) {
-			sum += (double)Byte.toUnsignedInt(pixels[i]) / 255.0;
-		}
-		return sum / pixels.length;
-//		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)Byte.toUnsignedInt(pixels[i]) / 255.0).average().orElse(Double.NaN);
+		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)Byte.toUnsignedInt(pixels[i]) / 255.0).average().orElse(Double.NaN);
 	}
 
 	private static double getImageVar(final byte[] pixels, double mean) {
