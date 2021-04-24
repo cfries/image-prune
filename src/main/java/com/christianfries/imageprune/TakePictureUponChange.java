@@ -58,16 +58,15 @@ public class TakePictureUponChange {
 		try {
 			double level = getImageDifference(reference, image, true);
 
-			System.out.print(fileName + "\t" + level + "\t");
 			if(level > threshold) {
 				String target = targetDir + File.separator + fileName.substring(0, fileName.length()-4) + "-" + System.currentTimeMillis() + fileName.substring(fileName.length()-4);
 				Files.copy(Paths.get(fileName), Paths.get(target));
 
-				System.out.println("transfered.");
+				System.out.print(fileName + "\t" + level + "\ttransfered.");
 			}
 			else {
 				Files.delete(Paths.get(fileName));
-				System.out.println("deleted.");
+				System.out.print(fileName + "\t" + level + "\tdeleted.");
 			}
 		}
 		catch(Exception e)
