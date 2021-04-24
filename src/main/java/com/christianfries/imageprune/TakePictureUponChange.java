@@ -45,10 +45,13 @@ public class TakePictureUponChange {
 				double level = getImageDifference(reference, image, true);
 				reference = image;
 
+				System.out.println("Image level is " + level);
 				if(level > threshold) {
 					String target = targetDir + File.separator + fileName + "-" + System.currentTimeMillis();
 					Files.copy(Paths.get(fileName), Paths.get(target));
-					System.out.println("Transfered image to ");
+					System.out.println("Transfered image to " + target);
+				}
+				else {
 				}
 			}
 			catch(Exception e) {
