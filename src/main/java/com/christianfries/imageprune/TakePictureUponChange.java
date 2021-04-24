@@ -35,6 +35,7 @@ public class TakePictureUponChange {
 
 		ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash");
 		processBuilder.directory(null);
+		processBuilder.redirectError(new File(TakePictureUponChange.class.getSimpleName() + ".log"));
 		Process process = processBuilder.start();
 
 		OutputStream stdin = process.getOutputStream();
@@ -49,7 +50,7 @@ public class TakePictureUponChange {
 				+ "do\n"
 				+ "  timestamp=$(date +%s)\n"
 				+ "  filename=image-$timestamp.jpg\n"
-				+ "  " + imageCommand + " $filename\n"
+				+ "  " + imageCommand + "\n"
 				+ "  echo $filename\n"
 				+ "done\n";
 		writer.write(script);
