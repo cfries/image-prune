@@ -49,14 +49,15 @@ public class TakePictureUponChange {
 				+ "for(( ; ; ))\n"
 				+ "do\n"
 				+ "  timestamp=$(date +%s)\n"
-				+ "  filename=image-$timestamp.jpg\n"
+				+ "  filename=" + fileName + "-$timestamp.jpg\n"
 				+ "  " + imageCommand + "\n"
 				+ "  echo $filename\n"
 				+ "done\n";
 		writer.write(script);
 		writer.flush();
 
-
+		System.out.println(script);
+		
 		BufferedImage reference = null;
 
 		while(true) {
