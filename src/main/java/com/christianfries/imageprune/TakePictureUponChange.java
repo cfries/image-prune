@@ -29,7 +29,7 @@ public class TakePictureUponChange {
 		Double threshold = Double.valueOf(args[0]);
 		final String	fileName = args[1];
 		final String	targetDir = args[2];
-		final String[]	imageCommand = Arrays.copyOfRange(args, 3, args.length);
+		final String	imageCommand = args[3];
 
 		ExecutorService executorService = Executors.newFixedThreadPool(4);
 
