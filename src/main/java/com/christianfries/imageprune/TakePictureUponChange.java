@@ -113,8 +113,8 @@ public class TakePictureUponChange {
 		int width = reference.getWidth() / 4;
 		int height = reference.getHeight() / 4;
 
-		final BufferedImage referenceScaled = reference;//resizeImage(reference, width, height);
-		final BufferedImage imageScaled = image;//resizeImage(image, width, height);
+		final BufferedImage referenceScaled = resizeImage(reference, width, height);
+		final BufferedImage imageScaled = resizeImage(image, width, height);
 
 		double meanReference = getImageMean(referenceScaled);
 		double meanImage = getImageMean(imageScaled);
@@ -194,7 +194,7 @@ public class TakePictureUponChange {
 	}
 
 	private static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) throws IOException {
-		Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
+		Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_FAST);
 		BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
 		outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
 		return outputImage;
