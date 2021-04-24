@@ -27,6 +27,7 @@ import javax.imageio.ImageIO;
 public class TakePictureUponChange {
 
 	private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
+	private static final ExecutorService executorService2 = Executors.newSingleThreadExecutor();
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -74,9 +75,8 @@ public class TakePictureUponChange {
 				System.out.println("Read....: " + ((timeReadEnd-timeReadStart)/1000.0));
 
 				final BufferedImage referenceImage = reference;
-				if(saveWhenDifferent(referenceImage, image, threshold, filename, targetDir)) {
-					reference = image;
-				}
+				executorService2.submit(() -> saveWhenDifferent(referenceImage, image, threshold, filename, targetDir));
+				reference = image;
 			}
 			catch(Exception e) {
 				e.printStackTrace();
