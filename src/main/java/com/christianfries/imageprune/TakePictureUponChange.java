@@ -61,6 +61,7 @@ public class TakePictureUponChange {
 					System.out.println("Transfered image to " + target);
 				}
 				else {
+					Files.delete(Paths.get(fileName));
 				}
 			}
 			catch(Exception e) {
@@ -73,11 +74,11 @@ public class TakePictureUponChange {
 
 		if(reference == null) return Double.MAX_VALUE;
 
-		int width = reference.getWidth();// / 3;
-		int height = reference.getHeight();// / 3;
+		int width = reference.getWidth() / 6;
+		int height = reference.getHeight() / 6;
 
-		final BufferedImage referenceScaled = reference;//resizeImage(reference, width, height);
-		final BufferedImage imageScaled = image;//resizeImage(image, width, height);
+		final BufferedImage referenceScaled = resizeImage(reference, width, height);
+		final BufferedImage imageScaled = resizeImage(image, width, height);
 
 		double meanReference = getImageMean(referenceScaled);
 		double meanImage = getImageMean(imageScaled);
