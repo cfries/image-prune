@@ -31,8 +31,6 @@ public class TakePictureUponChange {
 		final String	targetDir = args[2];
 		final String	imageCommand = args[3];
 
-		ExecutorService executorService = Executors.newFixedThreadPool(4);
-
 		ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash");
 		processBuilder.directory(null);
 		processBuilder.redirectError(new File(TakePictureUponChange.class.getSimpleName() + ".log"));
@@ -50,7 +48,7 @@ public class TakePictureUponChange {
 				+ "do\n"
 				+ "  timestamp=$(date +%s)\n"
 				+ "  filename=" + fileName + "-$timestamp.jpg\n"
-				+ "  " + imageCommand + "\n"
+				+ "  " + imageCommand.replace("{filename}", "$filename") + "\n"
 				+ "  echo $filename\n"
 				+ "done\n";
 		writer.write(script);
@@ -68,7 +66,7 @@ public class TakePictureUponChange {
 				// Load the image
 				final BufferedImage image = ImageIO.read(new File(filename));
 				final BufferedImage referenceImage = reference;
-				executorService.submit(() -> saveWhenDifferent(referenceImage, image, threshold, filename, targetDir));
+				saveWhenDifferent(referenceImage, image, threshold, filename, targetDir);
 				reference = image;
 			}
 			catch(Exception e) {
