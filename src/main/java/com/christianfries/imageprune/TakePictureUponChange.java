@@ -33,13 +33,10 @@ public class TakePictureUponChange {
 			try {
 				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand);
 				processBuilder.directory(null);
-				File log = new File("TakePictureUponChange.log");
-				processBuilder.redirectErrorStream(true);
-				processBuilder.redirectOutput(Redirect.appendTo(log));
+//				File log = new File("TakePictureUponChange.log");
+//				processBuilder.redirectErrorStream(true);
+//				processBuilder.redirectOutput(Redirect.appendTo(log));
 				Process process = processBuilder.start();
-				assert processBuilder.redirectInput() == Redirect.PIPE;
-				assert processBuilder.redirectOutput().file() == log;
-				assert process.getInputStream().read() == -1;
 				process.waitFor();
 
 				// Load the image
@@ -65,7 +62,6 @@ public class TakePictureUponChange {
 				System.out.println(fileName + "\t" + level + "\ttransfered.");
 			}
 			else {
-				Files.delete(Paths.get(fileName));
 				System.out.println(fileName + "\t" + level + "\tdeleted.");
 			}
 		}
