@@ -98,7 +98,7 @@ public class TakePictureUponChange {
 				System.out.println(filename + "\t" + level + "\tdeleted.");
 			}
 			long timeCleanEnd = System.currentTimeMillis();
-			System.out.println("Clean.: " + ((timeCompareEnd-timeCompareStart)/1000));
+			System.out.println("Clean.: " + ((timeCleanEnd-timeCleanStart)/1000));
 		}
 		catch(Exception e)
 		{
