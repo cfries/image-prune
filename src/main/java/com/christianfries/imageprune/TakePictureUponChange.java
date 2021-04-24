@@ -104,7 +104,7 @@ public class TakePictureUponChange {
 		}
 		catch(Exception e)
 		{
-
+			e.printStackTrace();
 		}
 	}
 
@@ -118,11 +118,12 @@ public class TakePictureUponChange {
 		final BufferedImage referenceScaled = resizeImage(reference, width, height);
 		final BufferedImage imageScaled = resizeImage(image, width, height);
 
-		double meanReference = getImageMean(referenceScaled);
-		double meanImage = getImageMean(imageScaled);
-
 		byte[] pixelsRefernce = ((DataBufferByte) referenceScaled.getRaster().getDataBuffer()).getData();
 		byte[] pixelsImage = ((DataBufferByte) imageScaled.getRaster().getDataBuffer()).getData();
+
+		double meanReference = getImageMean(pixelsRefernce);
+		double meanImage = getImageMean(pixelsImage);
+
 
 		double covarSum = 0;
 		double varSumReference = 0;
@@ -150,9 +151,7 @@ public class TakePictureUponChange {
 		return (1.0 - level) / 2.0;
 	}
 
-	private static double getImageMean(BufferedImage image) {
-		final byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-
+	private static double getImageMean(final byte[] pixels) {
 		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)pixels[i] / 255.0).average().orElse(Double.NaN);
 	}
 
