@@ -3,8 +3,14 @@ package com.christianfries.imageprune;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.URI;
 import java.nio.file.Files;
@@ -29,16 +35,31 @@ public class TakePictureUponChange {
 
 		BufferedImage reference = null;
 
-		while(true) {
-			try {
-				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand);
+				ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash");
 				processBuilder.directory(null);
-//				File log = new File("TakePictureUponChange.log");
-//				processBuilder.redirectErrorStream(true);
-//				processBuilder.redirectOutput(Redirect.appendTo(log));
 				Process process = processBuilder.start();
-				process.waitFor();
 
+				OutputStream stdin = process.getOutputStream ();
+				InputStream stderr = process.getErrorStream ();
+				InputStream stdout = process.getInputStream ();
+
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin));
+				BufferedReader reader = new BufferedReader (new InputStreamReader(stdout));
+
+				String script = ""
+						+ "for(( ; ; ))"
+						+ "do"
+						+ "  timestamp=$(date +%s)"
+						+ "  filename=image-$timestamp.jpg"
+						+ "  " + imageCommand + " $filename"
+						+ "  echo $filename"
+						+ "done";
+				writer.write(script);
+
+				while(true) {
+				
+					try {
+						String filename = reader.readLine();
 				// Load the image
 				final BufferedImage image = ImageIO.read(new File(fileName));
 				final BufferedImage referenceImage = reference;
