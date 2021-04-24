@@ -26,13 +26,13 @@ import javax.imageio.ImageIO;
 
 public class TakePictureUponChange {
 
-	private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
-	private static final ExecutorService executorService2 = Executors.newSingleThreadExecutor();
+	private static final ExecutorService executorFileTransfer = Executors.newSingleThreadExecutor();
+	private static final ExecutorService executorImageCompare = Executors.newSingleThreadExecutor();
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 
 		Double threshold = Double.valueOf(args[0]);
-		final String	fileName = args[1];
+		final String	filenamePrefix = args[1];
 		final String	targetDir = args[2];
 		final String	imageCommand = args[3];
 
@@ -42,17 +42,17 @@ public class TakePictureUponChange {
 		Process process = processBuilder.start();
 
 		OutputStream stdin = process.getOutputStream();
-		InputStream stderr = process.getErrorStream();
 		InputStream stdout = process.getInputStream();
 
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin));
 		BufferedReader reader = new BufferedReader (new InputStreamReader(stdout));
 
+		// Launch image script, will save image to filename and write filename to reader.
 		String script = ""
 				+ "for(( ; ; ))\n"
 				+ "do\n"
-				+ "  timestamp=$(date +%s)\n"
-				+ "  filename=" + fileName + "-$timestamp.jpg\n"
+				+ "  timestamp=$(date +%s.%3N)\n"
+				+ "  filename=" + filenamePrefix + "-$timestamp.jpg\n"
 				+ "  " + imageCommand.replace("{filename}", "$filename") + "\n"
 				+ "  echo $filename\n"
 				+ "done\n";
@@ -64,7 +64,6 @@ public class TakePictureUponChange {
 		BufferedImage reference = null;
 
 		while(true) {
-
 			try {
 				String filename = reader.readLine();
 				System.out.println(filename);
@@ -75,7 +74,7 @@ public class TakePictureUponChange {
 				System.out.println("Read....: " + ((timeReadEnd-timeReadStart)/1000.0));
 
 				final BufferedImage referenceImage = reference;
-				executorService2.submit(() -> saveWhenDifferent(referenceImage, image, threshold, filename, targetDir));
+				executorImageCompare.submit(() -> saveWhenDifferent(referenceImage, image, threshold, filename, targetDir));
 				reference = image;
 			}
 			catch(Exception e) {
@@ -92,7 +91,7 @@ public class TakePictureUponChange {
 
 		final boolean isDifferent = level > threshold;
 
-		executorService.submit(() -> {
+		executorFileTransfer.submit(() -> {
 			try {
 				long timeCleanStart = System.currentTimeMillis();
 				if(level > threshold) {
@@ -131,8 +130,8 @@ public class TakePictureUponChange {
 		double meanReference = getImageMean(pixelsReference);
 		double meanImage = getImageMean(pixelsImage);
 
-//		double varReference = getImageVar(pixelsReference);
-		
+		//		double varReference = getImageVar(pixelsReference);
+
 		double covarSum = 0;
 		double varSumReference = 0;
 		double varSumImage = 0;
