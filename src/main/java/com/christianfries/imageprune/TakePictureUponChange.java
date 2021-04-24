@@ -106,8 +106,7 @@ public class TakePictureUponChange {
 
 				System.out.println(
 						filename + "\t" + String.format("%8.5f", level) + "\t" +
-						((level > threshold) ? "transfered" : "deleted") +
-						"\t" + String.format("(compare: %5.3f s, transfer: %5.3f s).", timeCompare, timeTransfer));
+						"\t" + String.format("%-10s (compare: %5.3f s, transfer: %5.3f s).", ((level > threshold) ? "transfered" : "deleted"), timeCompare, timeTransfer));
 			}
 			catch(Exception e)
 			{
