@@ -102,11 +102,11 @@ public class TakePictureUponChange {
 
 		if(reference == null) return Double.MAX_VALUE;
 
-		int width = reference.getWidth() / 6;
-		int height = reference.getHeight() / 6;
+		int width = reference.getWidth() / 4;
+		int height = reference.getHeight() / 4;
 
-		final BufferedImage referenceScaled = resizeImage(reference, width, height);
-		final BufferedImage imageScaled = resizeImage(image, width, height);
+		final BufferedImage referenceScaled = reference;//resizeImage(reference, width, height);
+		final BufferedImage imageScaled = image;//resizeImage(image, width, height);
 
 		double meanReference = getImageMean(referenceScaled);
 		double meanImage = getImageMean(imageScaled);
