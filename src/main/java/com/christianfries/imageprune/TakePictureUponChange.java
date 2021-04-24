@@ -60,7 +60,7 @@ public class TakePictureUponChange {
 
 			System.out.print(fileName + "\t" + level + "\t");
 			if(level > threshold) {
-				String target = targetDir + File.separator + fileName.subSequence(0, fileName.length()-4) + "-" + System.currentTimeMillis() + "jpg";
+				String target = targetDir + File.separator + fileName.substring(0, fileName.length()-4) + "-" + System.currentTimeMillis() + fileName.substring(fileName.length()-4);
 				Files.copy(Paths.get(fileName), Paths.get(target));
 
 				System.out.println("transfered.");
