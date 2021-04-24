@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -22,20 +23,18 @@ public class TakePictureUponChange {
 		Double threshold = Double.valueOf(args[0]);
 		final String	fileName = args[1];
 		final String	targetDir = args[2];
-		final String	imageCommand = args[3];
+		final String[]	imageCommand = Arrays.copyOfRange(args, 3, args.length);
 
+		ExecutorService executorService = Executors.newFixedThreadPool(4);
 
 		BufferedImage reference = null;
 
 		while(true) {
 			try {
 				System.out.println("Taking image.");
-				
-				String fileNameUnique = fileName + "-" + System.currentTimeMillis();
 
-				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand.replace("{filename}", fileNameUnique));
+				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand);
 				processBuilder.directory(null);
-
 				File log = new File("TakePictureUponChange.log");
 				processBuilder.redirectErrorStream(true);
 				processBuilder.redirectOutput(Redirect.appendTo(log));
@@ -48,29 +47,38 @@ public class TakePictureUponChange {
 				System.out.println("Reading image.");
 
 				// Load the image
-				BufferedImage image = ImageIO.read(new File(fileName));
-
-				System.out.println("Comparing images.");
-
-				double level = getImageDifference(reference, image, true);
+				final BufferedImage image = ImageIO.read(new File(fileName));
+				final BufferedImage referenceImage = reference;
+				executorService.submit(() -> saveWhenDifferent(referenceImage, image, threshold, fileName, targetDir));
 				reference = image;
-
-				System.out.println("Image level is " + level);
-				if(level > threshold) {
-					System.out.println("Transferring image.");
-
-					String target = targetDir + File.separator + fileNameUnique;
-					Files.copy(Paths.get(fileNameUnique), Paths.get(target));
-
-					System.out.println("Transfered image to " + target);
-				}
-				else {
-					Files.delete(Paths.get(fileNameUnique));
-				}
 			}
 			catch(Exception e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	private static void saveWhenDifferent(final BufferedImage reference, final BufferedImage image, double threshold, String fileName, String targetDir) {
+		try {
+		System.out.println("Comparing images.");
+		double level = getImageDifference(reference, image, true);
+
+		System.out.println("Image level is " + level);
+		if(level > threshold) {
+			System.out.println("Transferring image.");
+
+			String target = targetDir + File.separator + fileName + "-" + System.currentTimeMillis();
+			Files.copy(Paths.get(fileName), Paths.get(target));
+
+			System.out.println("Transfered image to " + target);
+		}
+		else {
+			Files.delete(Paths.get(fileName));
+		}
+		}
+		catch(Exception e)
+		{
+			
 		}
 	}
 
