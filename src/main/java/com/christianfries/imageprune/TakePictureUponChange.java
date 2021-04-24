@@ -71,7 +71,7 @@ public class TakePictureUponChange {
 				long timeReadStart = System.currentTimeMillis();
 				final BufferedImage image = ImageIO.read(new File(filename));
 				long timeReadEnd = System.currentTimeMillis();
-				System.out.println("Read....: " + ((timeReadEnd-timeReadStart)/1000.0));
+//				System.out.println("Read....: " + ((timeReadEnd-timeReadStart)/1000.0));
 
 				final BufferedImage referenceImage = reference;
 				executorImageCompare.submit(() -> saveWhenDifferent(referenceImage, image, threshold, filename, targetDir));
@@ -87,8 +87,8 @@ public class TakePictureUponChange {
 		long timeCompareStart = System.currentTimeMillis();
 		double level = getImageDifference(reference, image, true);
 		long timeCompareEnd = System.currentTimeMillis();
-		System.out.println("Compare.: " + ((timeCompareEnd-timeCompareStart)/1000.0));
 
+		final double timeCompare = ((timeCompareEnd-timeCompareStart)/1000.0);
 		final boolean isDifferent = level > threshold;
 
 		executorFileTransfer.submit(() -> {
@@ -98,14 +98,13 @@ public class TakePictureUponChange {
 					String target = targetDir + File.separator + filename;
 					Files.copy(Paths.get(filename), Paths.get(target));
 					Files.delete(Paths.get(filename));
-					System.out.println(filename + "\t" + level + "\ttransfered.");
 				}
 				else {
 					Files.delete(Paths.get(filename));
-					System.out.println(filename + "\t" + level + "\tdeleted.");
 				}
 				long timeCleanEnd = System.currentTimeMillis();
-				System.out.println("Clean.: " + ((timeCleanEnd-timeCleanStart)/1000.0));
+				final double timeTransfer = (timeCleanEnd-timeCleanStart)/1000.0;
+				System.out.println(filename + "\t" + level + "\ttransfered\t" + String.format("(compare: %5.3f s, transfer: %5.3f s).", timeCompare, timeTransfer));
 			}
 			catch(Exception e)
 			{
@@ -122,7 +121,6 @@ public class TakePictureUponChange {
 		if(reference == null) return Double.MAX_VALUE;
 
 		boolean isImageHasAlpha = reference.getAlphaRaster() != null;
-		System.out.println(isImageHasAlpha);
 
 		byte[] pixelsReference = ((DataBufferByte) reference.getRaster().getDataBuffer()).getData();
 		byte[] pixelsImage = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
@@ -165,8 +163,11 @@ public class TakePictureUponChange {
 //		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)Byte.toUnsignedInt(pixels[i]) / 255.0).average().orElse(Double.NaN);
 	}
 
-	private static double getImageVar(final byte[] pixels, double mean) {
-		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> Math.pow((double)Byte.toUnsignedInt(pixels[i]) / 255.0 - mean,2)).average().orElse(Double.NaN);
+	private static double getImageMeanSquared(final byte[] pixels) {
+		return IntStream.range(0, pixels.length).parallel().mapToLong(i -> {
+			long value = (long) Byte.toUnsignedInt(pixels[i]);
+			return value*value;
+		}).sum() / 255.0 / pixels.length;
 	}
 
 	private static double getImageSigma(BufferedImage image, double mean) {
