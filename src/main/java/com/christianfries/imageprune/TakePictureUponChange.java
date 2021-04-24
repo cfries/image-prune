@@ -61,9 +61,9 @@ public class TakePictureUponChange {
 					try {
 						String filename = reader.readLine();
 				// Load the image
-				final BufferedImage image = ImageIO.read(new File(fileName));
+				final BufferedImage image = ImageIO.read(new File(filename));
 				final BufferedImage referenceImage = reference;
-				executorService.submit(() -> saveWhenDifferent(referenceImage, image, threshold, fileName, targetDir));
+				executorService.submit(() -> saveWhenDifferent(referenceImage, image, threshold, filename, targetDir));
 				reference = image;
 			}
 			catch(Exception e) {
@@ -72,18 +72,18 @@ public class TakePictureUponChange {
 		}
 	}
 
-	private static void saveWhenDifferent(final BufferedImage reference, final BufferedImage image, double threshold, String fileName, String targetDir) {
+	private static void saveWhenDifferent(final BufferedImage reference, final BufferedImage image, double threshold, String filename, String targetDir) {
 		try {
 			double level = getImageDifference(reference, image, true);
 
 			if(level > threshold) {
-				String target = targetDir + File.separator + fileName.substring(0, fileName.length()-4) + "-" + System.currentTimeMillis() + fileName.substring(fileName.length()-4);
-				Files.copy(Paths.get(fileName), Paths.get(target));
+				String target = targetDir + File.separator + filename;
+				Files.copy(Paths.get(filename), Paths.get(target));
 
-				System.out.println(fileName + "\t" + level + "\ttransfered.");
+				System.out.println(filename + "\t" + level + "\ttransfered.");
 			}
 			else {
-				System.out.println(fileName + "\t" + level + "\tdeleted.");
+				System.out.println(filename + "\t" + level + "\tdeleted.");
 			}
 		}
 		catch(Exception e)
