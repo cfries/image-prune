@@ -8,17 +8,13 @@ import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+
 import java.util.stream.LongStream;
 
 import javax.imageio.ImageIO;
 
-public class TakePictureUponChage {
+public class TakePictureUponChange {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -31,21 +27,19 @@ public class TakePictureUponChage {
 		BufferedImage reference = null;
 
 		while(true) {
-
 			try {
-				ProcessBuilder pb = new ProcessBuilder(imageCommand);
-				Map<String, String> env = pb.environment();
-				pb.directory(new File("/tmp"));
-				File log = new File("TakePictureUponChage.log");
-				pb.redirectErrorStream(true);
-				pb.redirectOutput(Redirect.appendTo(log));
-				Process p = pb.start();
-				assert pb.redirectInput() == Redirect.PIPE;
-				assert pb.redirectOutput().file() == log;
-				assert p.getInputStream().read() == -1;
-				p.waitFor();
+				ProcessBuilder processBuilder = new ProcessBuilder(imageCommand);
+				processBuilder.directory(null);
+				File log = new File("TakePictureUponChange.log");
+				processBuilder.redirectErrorStream(true);
+				processBuilder.redirectOutput(Redirect.appendTo(log));
+				Process process = processBuilder.start();
+				assert processBuilder.redirectInput() == Redirect.PIPE;
+				assert processBuilder.redirectOutput().file() == log;
+				assert process.getInputStream().read() == -1;
+				process.waitFor();
 
-				// Load the images
+				// Load the image
 				BufferedImage image = ImageIO.read(new File(fileName));
 
 				double level = getImageDifference(reference, image, true);
