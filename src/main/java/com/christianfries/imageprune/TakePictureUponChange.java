@@ -3,6 +3,7 @@ package com.christianfries.imageprune;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import javax.imageio.ImageIO;
@@ -119,25 +121,21 @@ public class TakePictureUponChange {
 		double meanReference = getImageMean(referenceScaled);
 		double meanImage = getImageMean(imageScaled);
 
+		byte[] pixelsRefernce = ((DataBufferByte) referenceScaled.getRaster().getDataBuffer()).getData();
+		byte[] pixelsImage = ((DataBufferByte) imageScaled.getRaster().getDataBuffer()).getData();
+
 		double covarSum = 0;
 		double varSumReference = 0;
 		double varSumImage = 0;
-		for(int y =0; y < referenceScaled.getHeight(); y++) {
-			for (int x = 0; x < referenceScaled.getWidth(); x++) {
-				//Retrieving contents of a pixel
-				int pixel1 = referenceScaled.getRGB(x,y);
-				int pixel2 = imageScaled.getRGB(x,y);
-				//Creating a Color object from pixel value
-				Color color1 = new Color(pixel1, true);
-				//Retrieving the R G B values
-				int red1 = color1.getRed();
-				int green1 = color1.getGreen();
-				int blue1 = color1.getBlue();
-				Color color2 = new Color(pixel2, true);
-				//Retrieving the R G B values
-				int red2 = color2.getRed();
-				int green2 = color2.getGreen();
-				int blue2 = color2.getBlue();
+		for(int i=0; i < pixelsRefernce.length/3; i++) {
+
+				int red1 = pixelsRefernce[3*i+0];
+				int green1 = pixelsRefernce[3*i+1];
+				int blue1 = pixelsRefernce[3*i+2];
+
+				int red2 = pixelsImage[3*i+0];
+				int green2 = pixelsImage[3*i+1];
+				int blue2 = pixelsImage[3*i+2];
 
 				double diff1 = (double)(red1+green1+blue1)/(3.0*255.0)-meanReference;
 				double diff2 = (double)(red2+green2+blue2)/(3.0*255.0)-meanImage;
@@ -145,7 +143,6 @@ public class TakePictureUponChange {
 				covarSum += diff1*diff2;
 				varSumReference += diff1*diff1;
 				varSumImage += diff2*diff2;
-			}
 		}
 
 		double level = covarSum / Math.sqrt(varSumReference*varSumImage);
@@ -154,23 +151,9 @@ public class TakePictureUponChange {
 	}
 
 	private static double getImageMean(BufferedImage image) {
-		return LongStream.range(0, image.getHeight()).parallel().mapToDouble(i -> {
-			double sumForRow = 0;
-			int y = (int)i;
-			for (int x = 0; x < image.getWidth(); x++) {
-				//Retrieving contents of a pixel
-				int pixel = image.getRGB(x,y);
-				//Creating a Color object from pixel value
-				Color color = new Color(pixel, true);
-				//Retrieving the R G B values
-				int red = color.getRed();
-				int green = color.getGreen();
-				int blue = color.getBlue();
+		final byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 
-				sumForRow += (double)(red+green+blue) / 255.0 / 3.0;
-			}
-			return sumForRow;
-		}).sum() / (image.getHeight() * image.getWidth());
+		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)pixels[i] / 255.0).average().orElse(Double.NaN);
 	}
 
 	private static double getImageSigma(BufferedImage image, double mean) {
