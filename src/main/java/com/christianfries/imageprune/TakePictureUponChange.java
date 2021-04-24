@@ -60,7 +60,7 @@ public class TakePictureUponChange {
 
 			System.out.print(fileName + "\t" + level + "\t");
 			if(level > threshold) {
-				String target = targetDir + File.separator + fileName + "-" + System.currentTimeMillis();
+				String target = targetDir + File.separator + fileName.subSequence(0, fileName.length()-4) + "-" + System.currentTimeMillis() + "jpg";
 				Files.copy(Paths.get(fileName), Paths.get(target));
 
 				System.out.println("transfered.");
@@ -88,9 +88,6 @@ public class TakePictureUponChange {
 
 		double meanReference = getImageMean(referenceScaled);
 		double meanImage = getImageMean(imageScaled);
-
-		double sigmaReference = getImageSigma(referenceScaled, meanReference);
-		double sigmaImage = getImageSigma(imageScaled, meanImage);
 
 		double covarSum = 0;
 		double varSumReference = 0;

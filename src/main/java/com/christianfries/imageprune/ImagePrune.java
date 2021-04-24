@@ -67,8 +67,8 @@ public class ImagePrune {
 
 		if(reference == null) return Double.MAX_VALUE;
 
-		int width = reference.getWidth() / 3;
-		int height = reference.getHeight() / 3;
+		int width = reference.getWidth() / 6;
+		int height = reference.getHeight() / 6;
 
 		final BufferedImage referenceScaled = resizeImage(reference, width, height);
 		final BufferedImage imageScaled = resizeImage(image, width, height);
@@ -76,13 +76,10 @@ public class ImagePrune {
 		double meanReference = getImageMean(referenceScaled);
 		double meanImage = getImageMean(imageScaled);
 
-		double sigmaReference = getImageSigma(referenceScaled, meanReference);
-		double sigmaImage = getImageSigma(imageScaled, meanImage);
-
-		
-		double difference = LongStream.range(0, referenceScaled.getHeight()).parallel().mapToDouble(i -> {
-			double differenceForRow = 0;
-			int y = (int)i;
+		double covarSum = 0;
+		double varSumReference = 0;
+		double varSumImage = 0;
+		for(int y =0; y < referenceScaled.getHeight(); y++) {
 			for (int x = 0; x < referenceScaled.getWidth(); x++) {
 				//Retrieving contents of a pixel
 				int pixel1 = referenceScaled.getRGB(x,y);
@@ -99,21 +96,18 @@ public class ImagePrune {
 				int green2 = color2.getGreen();
 				int blue2 = color2.getBlue();
 
-				if(blackWhite) {
-					double differenceOnPixel = ((double)(red1+green1+blue1)/(3.0*255.0)-meanReference) * ((double)(red2+green2+blue2)/(3.0*255.0)-meanImage);
-//					double differenceOnPixel = Math.abs((double)(red1+green1+blue1)/(3.0*255.0) - meanReference/meanImage * (double)(red2+green2+blue2)/(3.0*255.0));
-					differenceForRow += differenceOnPixel;
-				}
-				else {
-					differenceForRow += Math.abs(red1-red2) + Math.abs(green1-green2) + Math.abs(blue1-blue2);
-				}
+				double diff1 = (double)(red1+green1+blue1)/(3.0*255.0)-meanReference;
+				double diff2 = (double)(red2+green2+blue2)/(3.0*255.0)-meanImage;
+
+				covarSum += diff1*diff2;
+				varSumReference += diff1*diff1;
+				varSumImage += diff2*diff2;
 			}
-			return differenceForRow;
-		}).sum();
+		}
 
-		double level = difference / (referenceScaled.getWidth()*referenceScaled.getHeight());
+		double level = covarSum / Math.sqrt(varSumReference*varSumImage);
 
-		return (1.0 - level / sigmaImage / sigmaReference) / 2.0;
+		return (1.0 - level) / 2.0;
 	}
 
 	private static double getImageMean(BufferedImage image) {
