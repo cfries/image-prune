@@ -127,14 +127,14 @@ public class TakePictureUponChange {
 		byte[] pixelsReference = ((DataBufferByte) reference.getRaster().getDataBuffer()).getData();
 		byte[] pixelsImage = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 
-		double meanReference = getImageMean(pixelsReference);
-		double meanImage = getImageMean(pixelsImage);
+		float meanReference = (float)getImageMean(pixelsReference);
+		float meanImage = (float)getImageMean(pixelsImage);
 
 		//		double varReference = getImageVar(pixelsReference);
 
-		double covarSum = 0;
-		double varSumReference = 0;
-		double varSumImage = 0;
+		float covarSum = 0;
+		float varSumReference = 0;
+		float varSumImage = 0;
 
 		for(int i=0; i < pixelsReference.length/3; i++) {
 
@@ -146,8 +146,8 @@ public class TakePictureUponChange {
 			int green2 = Byte.toUnsignedInt(pixelsImage[3*i+1]);
 			int blue2 = Byte.toUnsignedInt(pixelsImage[3*i+2]);
 
-			double diff1 = (double)(red1+green1+blue1)/(3.0*255.0)-meanReference;
-			double diff2 = (double)(red2+green2+blue2)/(3.0*255.0)-meanImage;
+			float diff1 = (float)(red1+green1+blue1)/(3.0f*255.0f)-meanReference;
+			float diff2 = (float)(red2+green2+blue2)/(3.0f*255.0f)-meanImage;
 
 			covarSum += diff1*diff2;
 			varSumReference += diff1*diff1;
