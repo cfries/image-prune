@@ -75,6 +75,36 @@ detects changes in the picture it will transfer it to the nas.
 ./mvnw clean install exec:java -Dexec.mainClass=com.christianfries.imageprune.TakePictureUponChange -Dexec.args="0.018 image /Volumes/nas/piimages \"raspistill -th none -q 10 -t 400 -awb greyworld -o {filename}\""
 ```
 
+### Full script
+
+The following scripts
+
+1. waits for the WLAN to get connected
+2. mounts a NAS
+3. checks out this project
+4. runs `TakePictureUponChangeTakePictureUponChange`
+
+```
+#!/bin/bash
+
+# wait for wlan
+while [ "$(ifconfig wlan0 | grep inet | grep 192.168.)" = "" ];  do sleep 1; done
+
+sleep 10
+
+# mount nas
+afp_client mount -u USERNAME -p PASSWIRD "SERVER:SHARE" /Volumes/nas
+
+mkdir -p /tmp/image-recorder
+cd /tmp/image-recorder
+
+git clone https://github.com/cfries/image-prune.git
+cd image-prune
+git pull
+
+./mvnw clean install exec:java -Dexec.mainClass=com.christianfries.imageprune.TakePictureUponChange -Dexec.args="0.018 image /Volumes/nas/piimages \"raspistill -th none -q 10 -t 400 -awb greyworld -o {filename}\""
+```
+
 
 License
 -------
