@@ -3,12 +3,14 @@ package com.christianfries.imageprune;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import javax.imageio.ImageIO;
@@ -63,12 +65,12 @@ public class ImagePrune {
 		fileDeletionService.awaitTermination(10, TimeUnit.SECONDS);
 	}
 
-	private static double getImageDifference(final BufferedImage reference, final BufferedImage image, boolean blackWhite) throws IOException {
+	private static double getImageDifference2(final BufferedImage reference, final BufferedImage image, boolean blackWhite) throws IOException {
 
 		if(reference == null) return Double.MAX_VALUE;
 
-		int width = reference.getWidth() / 6;
-		int height = reference.getHeight() / 6;
+		int width = reference.getWidth() / 4;
+		int height = reference.getHeight() / 4;
 
 		final BufferedImage referenceScaled = resizeImage(reference, width, height);
 		final BufferedImage imageScaled = resizeImage(image, width, height);
@@ -108,6 +110,53 @@ public class ImagePrune {
 		double level = covarSum / Math.sqrt(varSumReference*varSumImage);
 
 		return (1.0 - level) / 2.0;
+	}
+
+	private static double getImageDifference(final BufferedImage reference, final BufferedImage image, boolean blackWhite) throws IOException {
+
+		if(reference == null) return Double.MAX_VALUE;
+
+		boolean isImageHasAlpha = reference.getAlphaRaster() != null;
+
+		byte[] pixelsReference = ((DataBufferByte) reference.getRaster().getDataBuffer()).getData();
+		byte[] pixelsImage = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+
+		double meanReference = getImageMean(pixelsReference);
+		double meanImage = getImageMean(pixelsImage);
+
+		//		double varReference = getImageVar(pixelsReference);
+
+		double covarSum = 0;
+		double varSumReference = 0;
+		double varSumImage = 0;
+
+		for(int i=0; i < pixelsReference.length/3; i++) {
+
+			int red1 = Byte.toUnsignedInt(pixelsReference[3*i+0]);
+			int green1 = Byte.toUnsignedInt(pixelsReference[3*i+1]);
+			int blue1 = Byte.toUnsignedInt(pixelsReference[3*i+2]);
+
+			int red2 = Byte.toUnsignedInt(pixelsImage[3*i+0]);
+			int green2 = Byte.toUnsignedInt(pixelsImage[3*i+1]);
+			int blue2 = Byte.toUnsignedInt(pixelsImage[3*i+2]);
+
+			double diff1 = (double)(red1+green1+blue1)/(3.0*255.0)-meanReference;
+			double diff2 = (double)(red2+green2+blue2)/(3.0*255.0)-meanImage;
+
+			covarSum += diff1*diff2;
+			varSumReference += diff1*diff1;
+			varSumImage += diff2*diff2;
+		}
+
+		double level = covarSum / Math.sqrt(varSumReference*varSumImage);
+
+		return (1.0 - level) / 2.0;
+	}
+
+	private static double getImageMean(final byte[] pixels) {
+		// IntStream sum does not work if we have more than 2 Megapixels
+		return IntStream.range(0, pixels.length).parallel().mapToLong(i -> Byte.toUnsignedInt(pixels[i])).sum() / 255.0 / pixels.length;
+		//		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)Byte.toUnsignedInt(pixels[i]) / 255.0).average().orElse(Double.NaN);
 	}
 
 	private static double getImageMean(BufferedImage image) {
@@ -151,9 +200,9 @@ public class ImagePrune {
 	}
 
 	private static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) throws IOException {
-	    Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
-	    BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
-	    outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
-	    return outputImage;
+		Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
+		BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+		outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
+		return outputImage;
 	}
 }
