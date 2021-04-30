@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.christianfries</groupId>
-  <artifactId>imageprune</artifactId>
+  <artifactId>surveillance-camera</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>Image Prune</name>
+  <name>surveillance-camera</name>
   <description>Searches for images that are "almost" similar and keeps only one of them.</description>
 	<properties>
 		<src.main.java.dir>src/main/java</src.main.java.dir>

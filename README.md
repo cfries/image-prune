@@ -1,9 +1,9 @@
-ImagePrune
+Surveillance Camera Project (for Raspberry Pi)
 ==========
 
 ****************************************
 
-**Small project to find similar images in a directory and remove approximate duplicates or to take pictures in a loop an transferring it if a change is detected.**
+**Small project with some Java code that may be used to build a Surveillance Camera.
 
 ****************************************
 
@@ -72,7 +72,7 @@ the following will take a picture appoximately every second and - if it
 detects changes in the picture it will transfer it to the nas.
 
 ```
-./mvnw clean install exec:java -Dexec.mainClass=com.christianfries.imageprune.TakePictureUponChange -Dexec.args="0.018 image /Volumes/nas/piimages \"raspistill -th none -q 10 -t 400 -awb greyworld -o {filename}\""
+./mvnw clean install exec:java -Dexec.mainClass=com.christianfries.surveillancecamera.TakePictureUponChange -Dexec.args="0.018 image /Volumes/nas/piimages \"raspistill -th none -q 10 -t 400 -awb greyworld -o {filename}\""
 ```
 
 ### Full script
@@ -98,11 +98,11 @@ afp_client mount -u USERNAME -p PASSWIRD "SERVER:SHARE" /Volumes/nas
 mkdir -p /tmp/image-recorder
 cd /tmp/image-recorder
 
-git clone https://github.com/cfries/image-prune.git
-cd image-prune
+git clone https://github.com/cfries/surveillance-camera.git
+cd surveillance-camera
 git pull
 
-./mvnw clean install exec:java -Dexec.mainClass=com.christianfries.imageprune.TakePictureUponChange -Dexec.args="0.018 image /Volumes/nas/piimages \"raspistill -th none -q 10 -t 400 -awb greyworld -o {filename}\""
+./mvnw clean install exec:java -Dexec.mainClass=com.christianfries.surveillancecamera.TakePictureUponChange -Dexec.args="0.018 image /Volumes/nas/piimages \"raspistill -th none -q 10 -t 400 -awb greyworld -o {filename}\""
 ```
 
 # Hardware

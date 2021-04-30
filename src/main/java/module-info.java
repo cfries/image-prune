@@ -1,6 +1,6 @@
 
 module com.christianfries.clustering {
-	exports com.christianfries.imageprune;
+	exports com.christianfries.surveillancecamera;
 
 	requires java.base;
 	requires java.desktop;
