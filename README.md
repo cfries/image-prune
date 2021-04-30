@@ -3,7 +3,7 @@ Surveillance Camera Project (for Raspberry Pi)
 
 ****************************************
 
-**Small project with some Java code that may be used to build a Surveillance Camera.
+**Small project with some Java code that may be used to build a Surveillance Camera**.
 
 ****************************************
 
