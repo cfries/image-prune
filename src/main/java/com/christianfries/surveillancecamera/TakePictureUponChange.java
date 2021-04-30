@@ -1,4 +1,4 @@
-package com.christianfries.imageprune;
+package com.christianfries.surveillancecamera;
 
 import java.awt.Color;
 import java.awt.Image;
