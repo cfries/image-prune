@@ -105,6 +105,21 @@ git pull
 ./mvnw clean install exec:java -Dexec.mainClass=com.christianfries.imageprune.TakePictureUponChange -Dexec.args="0.018 image /Volumes/nas/piimages \"raspistill -th none -q 10 -t 400 -awb greyworld -o {filename}\""
 ```
 
+# Hardware
+
+The following hardware may be useful:
+
+## Power Plug
+
+The (European) Apple Power Plug has a useful feature. You can remove the part that goes into the socket and replace it with a conventional Euro C7 Power Cable. 
+
+![Power Plug](/img/ApplePowerPlugiPad.png)
+
+Then you can cut the cable and connect it - ON YOUR OWN RISK - to a power source (e.g. an insulating screw joint that is part of an outdoor lamp). 
+
+![Cable C7](/img/CableC7.png)
+
+If the outdoor lamp has an indoor switch, the system can be switched on an off from inside.
 
 License
 -------
