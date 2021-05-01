@@ -1,3 +1,8 @@
+/*
+ * (c) Copyright Christian P. Fries, Germany. Contact: email@christian-fries.de.
+ *
+ * Created on 27.03.2021
+ */
 package com.christianfries.surveillancecamera;
 
 import java.awt.image.BufferedImage;
@@ -10,6 +15,19 @@ import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
+/**
+ * This is a standalone version of the image comparisson operating on a given folder and deleting all images in the sequence that are too similar.
+ * 
+ * The program requires two command-line options, in this order:
+ * 
+ * <ul>
+ * 	<li> `sourceDir`: the directory to be scanned for images.
+ * 	<li> `threshold`: a floating-point number between 0 and 1 determining when a picture is considered to be different. You can see it as a percentage value. A good value is 0.018.
+ * </ul> 
+ * <b>WARNING:</b> <i>Be aware that the program deletes images that are considered to be duplicates!</i>
+ * 
+ * @author Christian Fries
+ */
 public class ImagePrune {
 
 	public static void main(String[] args) throws IOException, InterruptedException {

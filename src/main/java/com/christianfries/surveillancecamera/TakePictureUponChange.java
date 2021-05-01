@@ -1,3 +1,8 @@
+/*
+ * (c) Copyright Christian P. Fries, Germany. Contact: email@christian-fries.de.
+ *
+ * Created on 27.03.2021
+ */
 package com.christianfries.surveillancecamera;
 
 import java.awt.image.BufferedImage;
@@ -16,6 +21,22 @@ import java.util.concurrent.Executors;
 
 import javax.imageio.ImageIO;
 
+/**
+ * Runs a script (using `ProcessBuilder`) which launches a command to take a picture.
+ * Then compares this picture with a previous one and pushes
+ * the image to a NAS if a change is detected. In any case, the picture on the pi will be deleted afterwards.
+ * 
+ * The program requires four command-line options, in this order:
+ * 
+ * <ul>
+ * 	<li> `threshold`: a floating-point number between 0 and 1 determining when a picture is considered to be different. You can see it as a percentage value. A good value is 0.018.</li>
+ * 	<li> `filenamePrefix`: a prefix for the name of the image. The image will be stored under `filenamePrefix-timeStamp.jpg`.</li>
+ * 	<li> `targetDir`: the directory to be used to store the image. The image will be moved to this directory if it is the first one that is taken or if the image is different from the previous image by more than `threshold`.</li>
+ * 	<li> `imageCommand`: the shell command to be used to take the image. Use the placeholder `{filename}` for a filename under which the image is stored in the working directory of the program.</li>
+ * </ul>
+ * 
+ * @author Christian Fries
+ */
 public class TakePictureUponChange {
 
 	private static final ExecutorService executorFileTransfer = Executors.newSingleThreadExecutor();

@@ -1,3 +1,8 @@
+/*
+ * (c) Copyright Christian P. Fries, Germany. Contact: email@christian-fries.de.
+ *
+ * Created on 27.03.2021
+ */
 package com.christianfries.surveillancecamera;
 
 import java.awt.Color;
@@ -9,8 +14,31 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
+/**
+ * Compares two images and calculates a (kind of) probability that the images are different.
+ * 
+ * @author Christian Fries
+ */
 public class ImageCompare {
 
+	/**
+	 * Compares two images and calculates a (kind of) probability that the images are different.
+	 * A number 0 indicates that the images are identical. A number 1 indicates that the images are different.
+	 * 
+	 * Since images come with an amount of noise that depends on the camera system and other parameters
+	 * (variation in sunlight, etc.), you may have to determine a good threshold value. A guess is 0.18.
+	 * 
+	 * The difference is determines by calculating a correlation rho of the two images.
+	 * The raw difference it then defined as (1-rho)/2.
+	 * Since the correlation of low-light images may be much higher than the correlation of high contrast images,
+	 * it also calculates the mean value of the image (between 0 and 1) and scales the raw difference (1-rho)/2
+	 * with abs(0.5-mean)/2. This will adjust for changes in the light.
+	 * 
+	 * @param reference The reference image.
+	 * @param image The image to be compared to the reference image.
+	 * @return A (kind of) probability that the images are different.
+	 * @throws IOException
+	 */
 	public double getImageDifference(final BufferedImage reference, final BufferedImage image) throws IOException {
 
 		if(reference == null) {
