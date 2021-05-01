@@ -163,9 +163,9 @@ If the outdoor lamp has an indoor switch, the system can be switched on an off f
 - Raspberry Pi 3B (approx. 40 €) 
 - Raspberry Pi Camera (approx. 20 € to 30 €)
 - Raspberry Pi Housing (approx. 10 €)
-- USB Cable (approx 3 €)
+- USB Cable (Raspberry Pi to USB power adapter) (approx. 3 €)
 - Apple 12 W USB power adapter (approx. 20 €)
-- C7 Cable (approx 3 €)
+- C7 Cable (USB power adapter to power source) (approx. 3 €)
 
 The total is approx. 100 €. Of course you may still run other stuff on the Pi.
 
