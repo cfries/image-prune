@@ -11,37 +11,59 @@ Surveillance Camera Project (for Raspberry Pi)
 
 # Application
 
-The project currently contains two classes that provide a `main`-method that can be run (a `mvnw` script is provided and you may use Maven exec, see below).
+The project currently contains two classes that provide a `main`-method that can be run (a `mvnw` script is provided, and you may use Maven exec, see below).
 
 The project has two remarkable properties:
 
 - it transfers the picture to a network storage, so removing or destroying the pi will not delete images already taken.
-- it transfers the picture only, if a change is detected to reduce resource consumption (network bandwidth, storage space on the nas).
+- it transfers the picture only if a change is detected to reduce resource consumption (network bandwidth, storage space on the NAS).
 
-A disadvantage of the tool is that is does not allow to take images in very short succession, since the comparison requires approximately 0.5 seconds on a Raspbarry Pi.
-It currently take approximately 1 image per second.
+A disadvantage of the tool is that is does not allow to take images in very short succession since the comparison requires approximately 0.5 seconds on a Raspberry Pi.
+It currently takes approximately 1 image per second.
 
 ## TakePictureUponChange
 
 The class `TakePictureUponChange` runs a script (using `ProcessBuilder`) which launches a command to take a picture.
 It then compares this picture with a previous one and pushes
-the picture to a nas if a change is detected. In any case, the picture on the pi will be deleted afterwards.
+the image to a NAS if a change is detected. In any case, the picture on the pi will be deleted afterwards.
 
-The program requires four command line options, in this order:
+The program requires four command-line options, in this order:
 
-- `threshold`: a floating point number between 0 and 1 determining when a picture is considered to be different. You can see it as a percentage value. A good value is 0.018.
+- `threshold`: a floating-point number between 0 and 1 determining when a picture is considered to be different. You can see it as a percentage value. A good value is 0.018.
 - `filenamePrefix`: a prefix for the name of the image. The image will be stored under `filenamePrefix-timeStamp.jpg`.
 - `targetDir`: the directory to be used to store the image. The image will be moved to this directory if it is the first one that is taken or if the image is different from the previous image by more than <threshold>.
 - `imageCommand`: the shell command to be used to take the image. Use the placeholder `{filename}` for a filename under which the image is stored in the working directory of the program.
 
+### Running this project out of the box
+
+Assuming a NAS is mounted under `/Volumes/nas` (see below) and there is a folder `piimages`, so the
+path `/Volumes/nas/piimages` exits, then the following will take a picture approximately every second and - if it
+detects changes in the image, it will transfer it to the NAS.
+
+```
+./mvnw clean install exec:java -Dexec.mainClass=com.christianfries.surveillancecamera.TakePictureUponChange -Dexec.args="0.018 image /Volumes/nas/piimages \"raspistill -th none -q 10 -t 400 -awb greyworld -o {filename}\""
+```
+
+Remark: The argument `-t 400` adds a timeout of 400 milliseconds. However, launching the app adds some more milliseconds, so
+in summary, it will take a picture every 700-1000 milliseconds. The Java process runs the image comparison in parallel,
+but it requires approximately 600 milliseconds to process the image (on a Pi 3B). So you have to be careful when choosing the
+timeout parameter smaller.
+
+The process of transferring the image is also running in a different thread. If images cannot be transfered fast enough they
+will accumulate on the Pi's local memory.
+
 ## ImagePrune
 
-A possible application of this little program is the the implementation of a surveillance system, e.g. using a Raspberry Pi.
-The Pi is taking a picture in fixed time intervals, e.g. every second or faster and pushing the picture to a NAS.
-A background process then runs this the ImagePrune program from time to time to remove duplicate images.
-
+This is a standalone version of the image comparisson operating on a given folder and deleting all images in the sequence that are too similar.
 
 ## Useful stuff
+
+Below you find some stuff that allows you to build the surveillance system with a Pi such that
+
+- Powering the Pi up will launch the script in the background.
+- The Pi will wait for a WLAN network.
+- The Pi will mount an AFP network drive.
+- The Pi will run this app.
 
 ### Mounting AFP Network Drive on Raspberry Pi
 
@@ -68,6 +90,8 @@ while [ "$(ifconfig wlan0 | grep inet | grep 192.168.)" = "" ];  do sleep 1; don
 
 ### Running a script upon startup of pi.
 
+Copy the script (assuming its name is `nameOfScript`) to `/etc/init.d`. Then run
+
 ```
 sudo update-rc.d nameOfScript defaults
 ```
@@ -84,16 +108,6 @@ do
 done
 ```
 
-### Running this project out of the box
-
-Assuming a NAS is mounted unter /Volumes/nas and there is a folder piimages /Volumes/nas/piimages
-the following will take a picture appoximately every second and - if it
-detects changes in the picture it will transfer it to the nas.
-
-```
-./mvnw clean install exec:java -Dexec.mainClass=com.christianfries.surveillancecamera.TakePictureUponChange -Dexec.args="0.018 image /Volumes/nas/piimages \"raspistill -th none -q 10 -t 400 -awb greyworld -o {filename}\""
-```
-
 ### Full script
 
 The following scripts
@@ -102,6 +116,8 @@ The following scripts
 2. mounts a NAS
 3. checks out this project
 4. runs `TakePictureUponChangeTakePictureUponChange`
+
+** WARNING: If you use this script, you should use it with your own fork of this repository to be sure what code will be run and to be sure that a future version will not break your system. Note that a script that is launched via /etc/inid.d runs under the root account!**
 
 ```
 #!/bin/bash
