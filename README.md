@@ -56,6 +56,13 @@ will accumulate on the Pi's local memory.
 
 This is a standalone version of the image comparisson operating on a given folder and deleting all images in the sequence that are too similar.
 
+The program requires two command-line options, in this order:
+
+- `sourceDir`: the directory to be scanned for images.
+- `threshold`: a floating-point number between 0 and 1 determining when a picture is considered to be different. You can see it as a percentage value. A good value is 0.018.
+
+**WARNING:** *Be aware that the program deletes images that are considered to be duplicates!*
+
 ## Useful stuff
 
 Below you find some stuff that allows you to build the surveillance system with a Pi such that
