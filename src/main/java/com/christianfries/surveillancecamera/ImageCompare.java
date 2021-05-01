@@ -37,7 +37,7 @@ public class ImageCompare {
 	 * @param reference The reference image.
 	 * @param image The image to be compared to the reference image.
 	 * @return A (kind of) probability that the images are different.
-	 * @throws IOException
+	 * @throws IOException Thrown if the image processing fails.
 	 */
 	public double getImageDifference(final BufferedImage reference, final BufferedImage image) throws IOException {
 
@@ -45,7 +45,7 @@ public class ImageCompare {
 			return Double.MAX_VALUE;
 		}
 
-		final boolean isImageHasAlpha = reference.getAlphaRaster() != null;
+//		final boolean isImageHasAlpha = reference.getAlphaRaster() != null;
 
 		final byte[] pixelsReference = ((DataBufferByte) reference.getRaster().getDataBuffer()).getData();
 		final byte[] pixelsImage = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
@@ -91,6 +91,7 @@ public class ImageCompare {
 		//		return IntStream.range(0, pixels.length).parallel().mapToDouble(i -> (double)Byte.toUnsignedInt(pixels[i]) / 255.0).average().orElse(Double.NaN);
 	}
 
+	@SuppressWarnings("unused")
 	private static double getImageMeanSquared(final byte[] pixels) {
 		return IntStream.range(0, pixels.length).parallel().mapToLong(i -> {
 			final long value = Byte.toUnsignedInt(pixels[i]);
@@ -98,6 +99,7 @@ public class ImageCompare {
 		}).sum() / 255.0 / pixels.length;
 	}
 
+	@SuppressWarnings("unused")
 	private static double getImageSigma(BufferedImage image, double mean) {
 		return Math.sqrt(LongStream.range(0, image.getHeight()).parallel().mapToDouble(i -> {
 			double sumOfSquaresForRow = 0;
@@ -118,6 +120,7 @@ public class ImageCompare {
 		}).sum() / (image.getHeight() * image.getWidth()));
 	}
 
+	@SuppressWarnings("unused")
 	private static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) throws IOException {
 		final Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_FAST);
 		final BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);

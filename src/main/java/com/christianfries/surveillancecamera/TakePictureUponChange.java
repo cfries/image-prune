@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 
@@ -38,6 +39,8 @@ import javax.imageio.ImageIO;
  * @author Christian Fries
  */
 public class TakePictureUponChange {
+	
+	private static Logger logger = Logger.getLogger(TakePictureUponChange.class.getCanonicalName());
 
 	private static final ExecutorService executorFileTransfer = Executors.newSingleThreadExecutor();
 	private static final ExecutorService executorImageCompare = Executors.newSingleThreadExecutor();
@@ -83,7 +86,7 @@ public class TakePictureUponChange {
 				final long timeReadStart = System.currentTimeMillis();
 				final BufferedImage image = ImageIO.read(new File(filename));
 				final long timeReadEnd = System.currentTimeMillis();
-				//				System.out.println("Read....: " + ((timeReadEnd-timeReadStart)/1000.0));
+				logger.info("Read " + filename + ": " + ((timeReadEnd-timeReadStart)/1000.0) + " sec.");
 
 				final BufferedImage referenceImage = reference;
 				executorImageCompare.submit(() -> saveWhenDifferent(referenceImage, image, threshold, filename, targetDir));
