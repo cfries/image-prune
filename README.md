@@ -144,7 +144,9 @@ git pull
 
 The following hardware may be useful:
 
-## Power Plug
+## Power Supply
+
+It is possibly to power the Raspberry Pi though an outdoor lamp (modifications YOUR OWN RISK!).
 
 The (European) Apple Power Plug has a useful feature. You can remove the part that goes into the socket and replace it with a conventional Euro C7 Power Cable. 
 
@@ -155,6 +157,19 @@ Then you can cut the cable and connect it - ON YOUR OWN RISK - to a power source
 ![Cable C7](/img/CableC7.png)
 
 If the outdoor lamp has an indoor switch, the system can be switched on an off from inside.
+
+## Parts
+
+- Raspberry Pi 3B (approx. 40 €) 
+- Raspberry Pi Camera (approx. 20 € to 30 €)
+- Raspberry Pi Housing (approx. 10 €)
+- USB Cable (approx 3 €)
+- Apple 12 W USB power adapter (approx. 20 €)
+- C7 Cable (approx 3 €)
+
+The total is approx. 100 €. Of course you may still run other stuff on the Pi.
+
+The project can also be realized with a Pi Zero, which makes it 20 € cheaper.
 
 License
 -------
