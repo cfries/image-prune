@@ -31,7 +31,7 @@ The program requires four command-line options, in this order:
 
 - `threshold`: a floating-point number between 0 and 1 determining when a picture is considered to be different. You can see it as a percentage value. A good value is 0.018.
 - `filenamePrefix`: a prefix for the name of the image. The image will be stored under `filenamePrefix-timeStamp.jpg`.
-- `targetDir`: the directory to be used to store the image. The image will be moved to this directory if it is the first one that is taken or if the image is different from the previous image by more than <threshold>.
+- `targetDir`: the directory to be used to store the image. The image will be moved to this directory if it is the first one that is taken or if the image is different from the previous image by more than `threshold`.
 - `imageCommand`: the shell command to be used to take the image. Use the placeholder `{filename}` for a filename under which the image is stored in the working directory of the program.
 
 ### Running this project out of the box
@@ -67,7 +67,7 @@ The program requires two command-line options, in this order:
 
 Below you find some stuff that allows you to build the surveillance system with a Pi such that
 
-- Powering the Pi up will launch the script in the background.
+- The Pi ill launch the script in the background once it is powered up.
 - The Pi will wait for a WLAN network.
 - The Pi will mount an AFP network drive.
 - The Pi will run this app.
@@ -117,7 +117,7 @@ done
 
 ### Full script
 
-The following scripts
+The following script
 
 1. waits for the WLAN to get connected
 2. mounts a NAS
